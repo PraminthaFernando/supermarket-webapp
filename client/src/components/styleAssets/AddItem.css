@@ -1,0 +1,11 @@
+.form-box{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: rgba(205, 210, 214, 0.866);
+    backface-visibility: visible;
+    width:30rem;
+    height: fit-content;
+    color: black;
+    border-radius: 30px;
+}

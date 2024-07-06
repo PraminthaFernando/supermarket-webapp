@@ -1,0 +1,55 @@
+body{
+    background-image: url('https://media.istockphoto.com/id/1055443420/photo/beautiful-woman-buying-kale-at-a-farmers-market.jpg?s=2048x2048&w=is&k=20&c=9JZYwhJcqln2bxIsgHp1DVWCMn1ohMLWAH3vRigGUQ4=');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.login-box{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: rgba(205, 210, 214, 0.866);
+    backface-visibility: visible;
+    width:35rem;
+    height: fit-content;
+    color: black;
+    border-radius: 30px;
+}
+
+.danger{
+    padding: 1rem;
+    width: 20rem;
+    height: 1rem;
+}
+
+.loginerror{
+    color: red;
+}
+
+.input-box{
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items:flex-start;
+    color: blue;
+}
+
+.box{
+    width: 20rem;
+    height: 1.5rem;
+    border-radius: 8px;
+    color: rgb(75, 34, 34);
+    background-color: rgba(223, 220, 187, 0.64);
+}
+
+.btn{
+    padding: 0.4rem;
+    width: 8rem;
+    margin-bottom: 1.5rem;
+}
+
+h1{
+    margin-block-start: 1.5rem;
+    margin-block-end: 1rem;
+}

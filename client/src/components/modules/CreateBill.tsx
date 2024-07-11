@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React from "react";
+import { useNavigate } from "react-router-dom";
 
-function Addcustomer() {
-  const [CustomerID, setCustomerID] = useState("");
-  const [name, setName] = useState("");
-  const [ContactNo, setContactNo] = useState("");
-  const [Joindate, setJoindate] = useState("");
+const CreateBill: React.FC = () => {
+  const navigate = useNavigate();
+
+  const handleCreate = () => {
+    navigate("/items");
+  };
 
   return (
     <section className="bg-white rounded-2xl">
@@ -27,73 +29,57 @@ function Addcustomer() {
             </a>
 
             <h1 className="mt-6 text-2xl font-bold text-gray-900 sm:text-3xl md:text-4xl">
-              Add Customer
+              Create Bill
             </h1>
 
             <form
               action="#"
               className="mt-8 grid grid-cols-6 gap-6 shadow-xl p-3 rounded-xl"
             >
-              <div className="col-span-6">
-                <label
-                  htmlFor="Email"
-                  className="block text-left mx-1 text-sm font-medium text-gray-700"
-                >
-                  {" "}
-                  Customer Short name{" "}
-                </label>
-
-                <input
-                  type="text"
-                  id="Short"
-                  name="short"
-                  value={CustomerID}
-                  className="mt-1 p-1 h-8 border-2 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
-                  placeholder="enter customer ID"
-                  onChange={(e) => setCustomerID(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="col-span-6">
-                <label
-                  htmlFor="Email"
-                  className="block text-left mx-1 text-sm font-medium text-gray-700"
-                >
-                  {" "}
-                  Customer Full name{" "}
-                </label>
-
-                <input
-                  type="text"
-                  id="Full"
-                  name="full"
-                  value={name}
-                  className="mt-1 p-1 h-8 border-2 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
-                  placeholder="enter customer name"
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
-              </div>
-
               <div className="col-span-6 sm:col-span-3">
                 <label
                   htmlFor="FirstName"
                   className="block mx-1 text-left text-sm font-medium text-gray-700"
                 >
-                  Contact number
+                  Customer
                 </label>
 
-                <input
-                  type="text"
-                  id="4nNo"
-                  name="Phone"
-                  value={ContactNo}
-                  className="mt-1 h-8 border-2 p-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
-                  placeholder="customer contact number"
-                  onChange={(e) => setContactNo(e.target.value)}
-                  required
-                />
+                <div className="relative mt-1">
+                  <input
+                    type="text"
+                    list="HeadlineActArtist"
+                    id="HeadlineAct"
+                    className="w-full p-1 h-8 border-2 bg-white rounded-lg border-gray-300 pe-10 text-gray-700 sm:text-sm [&::-webkit-calendar-picker-indicator]:opacity-0"
+                    placeholder="Please select"
+                  />
+
+                  <span className="absolute inset-y-0 end-0 flex w-8 items-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth="1.5"
+                      stroke="currentColor"
+                      className="size-5 text-gray-500"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9"
+                      />
+                    </svg>
+                  </span>
+                </div>
+
+                <datalist content="HeadlineAct" id="HeadlineActArtist">
+                  <option value="JM">John Mayer</option>
+                  <option value="SRV">Stevie Ray Vaughn</option>
+                  <option value="JH">Jimi Hendrix</option>
+                  <option value="BBK">B.B King</option>
+                  <option value="AK">Albert King</option>
+                  <option value="BG">Buddy Guy</option>
+                  <option value="EC">Eric Clapton</option>
+                </datalist>
               </div>
 
               <div className="col-span-6 sm:col-span-3">
@@ -101,7 +87,7 @@ function Addcustomer() {
                   htmlFor="LastName"
                   className="block text-left mx-1 text-sm font-medium text-gray-700"
                 >
-                  Join date
+                  Date
                 </label>
 
                 <div className="relative">
@@ -111,9 +97,8 @@ function Addcustomer() {
                     defaultValue={new Date().toISOString().slice(0, 10)}
                     name="last_name"
                     className="mt-1 p-1 w-full h-8 border-2 rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm pr-10 cursor-pointer"
-                    onChange={(e) => setJoindate(e.target.value)}
                   />
-                  <span className="absolute inset-y-0 end-0 grid place-content-center px-4">
+                  <span className="absolute inset-y-0 end-0 grid place-content-center px-2">
                     <svg
                       className="h-5 w-5 text-gray-500"
                       xmlns="http://www.w3.org/2000/svg"
@@ -131,12 +116,14 @@ function Addcustomer() {
                   </span>
                 </div>
               </div>
-
-              <div className="col-span-6 sm:flex sm:items-center sm:gap-4">
-                <button className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500">
-                  Create an account
+              <div className="col-span-6 mx-6 sm:flex sm:items-baseline sm:gap-10">
+                <button
+                  className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500"
+                  onClick={handleCreate}
+                >
+                  Create bill
                 </button>
-                <button className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500">
+                <button className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-16 ml-5 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500">
                   Cancel
                 </button>
               </div>
@@ -146,6 +133,6 @@ function Addcustomer() {
       </div>
     </section>
   );
-}
+};
 
-export default Addcustomer;
+export default CreateBill;

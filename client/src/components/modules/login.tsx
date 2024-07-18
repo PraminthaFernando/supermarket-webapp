@@ -63,8 +63,8 @@ const Login: React.FC = () => {
             If you have any problem, please contact us
           </p>
 
-          <p className="mx-auto mt-4 max-w-md text-center text-gray-500">
-            Tel - 0710924987
+          <p className="mx-auto mt-4 max-w-md text-center text-red-500">
+            Tel - (+94)710924987
           </p>
 
           <form

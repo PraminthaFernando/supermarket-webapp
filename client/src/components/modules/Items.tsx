@@ -1,14 +1,37 @@
 import React, { useState } from "react";
 
+interface Item {
+  item: string;
+  place: string;
+  quantity: number;
+}
+
 const Items: React.FC = () => {
   const [Items, setItems] = useState(["Beens", "Potatoes"]);
   const [Places, setPlaces] = useState(["Dambulla", "Puttalama"]);
+  const [rowItem, setRowItem] = useState<string>("");
+  const [itemPlace, setItemPlace] = useState<string>("");
+  const [amount, setAmount] = useState<number>(0);
+  const [itemList, setItemlist] = useState<Item[]>([]);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (rowItem && itemPlace && amount > 0) {
+      setItemlist([
+        ...itemList,
+        { item: rowItem, place: itemPlace, quantity: amount },
+      ]);
+      setRowItem("");
+      setItemPlace("");
+      setAmount(0);
+    }
+  };
 
   return (
     <section className="bg-white rounded-2xl">
       <div className="lg:grid">
         <main className="flex items-center justify-center px-8 py-10 sm:px-10 lg:col-span-7 lg:px-16 lg:py-12 xl:col-span-6">
-          <div className="max-w-lg lg:max-w-3xl">
+          <div className="max-w-full m-auto lg:max-w-3xl">
             <a className="block text-blue-600" href="#">
               <span className="sr-only">Home</span>
               <svg
@@ -30,21 +53,24 @@ const Items: React.FC = () => {
             <form
               action="#"
               className="mt-8 grid grid-cols-6 gap-6 shadow-xl p-3 rounded-xl"
+              onSubmit={handleSubmit}
             >
               <div className="col-span-6 sm:col-span-3">
                 <label
-                  htmlFor="HeadlineAct"
-                  className="block text-left text-sm font-medium text-gray-900"
+                  htmlFor="place"
+                  className="block text-left mx-1 text-sm font-medium text-gray-900"
                 >
                   {" "}
                   Place{" "}
                 </label>
 
                 <select
-                  name="HeadlineAct"
-                  id="HeadlineAct"
+                  name="place"
+                  id="place"
                   required
                   className="mt-1.5 w-full rounded-lg bg-gray-200 border-2 h-8 border-gray-300 text-gray-700 sm:text-sm"
+                  onChange={(e) => setItemPlace(e.target.value)}
+                  value={itemPlace}
                   autoFocus
                 >
                   <option value="">select place</option>
@@ -56,16 +82,18 @@ const Items: React.FC = () => {
 
               <div className="col-span-6 sm:col-span-3">
                 <label
-                  htmlFor="HeadlineAct"
-                  className="block text-left text-sm font-medium text-gray-900"
+                  htmlFor="item"
+                  className="block text-left mx-1 text-sm font-medium text-gray-900"
                 >
                   {" "}
                   Item{" "}
                 </label>
                 <select
-                  name="HeadlineAct"
-                  id="HeadlineAct"
+                  name="item"
+                  id="item"
                   className="mt-1.5 w-full rounded-lg bg-gray-200 border-2 h-8 border-gray-300 text-gray-700 sm:text-sm"
+                  onChange={(e) => setRowItem(e.target.value)}
+                  value={rowItem}
                 >
                   <option value="">select item</option>
                   {Items.map((Item) => (
@@ -74,43 +102,28 @@ const Items: React.FC = () => {
                 </select>
               </div>
 
-              <div className="col-span-6">
+              <div className="col-span-6 sm:col-span-3">
                 <label
-                  htmlFor="Quantity"
-                  className="block text-left text-sm font-medium text-gray-900"
+                  htmlFor="quantity"
+                  className="block mx-1 text-left text-sm font-medium text-gray-700"
                 >
-                  {" "}
-                  Quantity{" "}
+                  Quantity
                 </label>
 
-                <div className="flex items-center gap-1 mt-3">
-                  <button
-                    type="button"
-                    className="size-10 leading-10 text-gray-600 transition hover:opacity-75"
-                  >
-                    &minus;
-                  </button>
-
-                  <input
-                    type="number"
-                    id="Quantity"
-                    value="1"
-                    className="h-10 w-16 rounded bg-white text-black border-gray-300 border-2 text-center [-moz-appearance:_textfield] sm:text-sm [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none"
-                    required
-                  />
-
-                  <button
-                    type="button"
-                    className="size-10 leading-10 text-gray-600 transition hover:opacity-75"
-                  >
-                    &plus;
-                  </button>
-                </div>
+                <input
+                  type="number"
+                  id="quantity"
+                  name="quantity"
+                  className="mt-1 p-2 h-8 border-2 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
+                  onChange={(e) => setAmount(e.target.valueAsNumber)}
+                  value={amount}
+                  required
+                />
               </div>
             </form>
 
-            <div className="overflow-x-auto mt-8 grid grid-cols-6 gap-6 shadow-xl p-3 rounded-xl w-fit">
-              <table className="min-w-full divide-y-2 divide-gray-200 bg-white text-sm">
+            <div className="overflow-x-auto mt-8 rounded-xl w-full">
+              <table className="min-w-full mx-auto divide-y-2 divide-gray-200 bg-white text-sm">
                 <thead className="ltr:text-left rtl:text-right">
                   <tr>
                     <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
@@ -128,45 +141,57 @@ const Items: React.FC = () => {
                     <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
                       Total Price
                     </th>
+                    <th className="whitespace-nowrap pl-4 pr-17 py-2 font-medium text-gray-900">
+                      <label htmlFor="SelectAll" className="sr-only">
+                        Remove Item
+                      </label>
+                    </th>
                   </tr>
                 </thead>
 
                 <tbody className="divide-y divide-gray-200">
-                  <tr>
-                    <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-                      Been
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                      Dambulla
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                      200.00
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                      2
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                      400.00
-                    </td>
-                  </tr>
-
-                  <tr>
-                    <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-                      Potatoes
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                      Puttalama
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                      150.00
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                      4
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                      600.00
-                    </td>
-                  </tr>
+                  {itemList.map((item, index) => (
+                    <tr key={index}>
+                      <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
+                        {item.item}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                        {item.place}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                        200.00
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                        {item.quantity}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                        {(item.quantity * 200.0).toFixed(2)}
+                      </td>
+                      <td className="whitespace-nowrap pl-3 pr-16 py-2 text-gray-200">
+                        <div className="relative inline-block">
+                          <button className="relative text-gray-600 border-gray-200 transition hover:text-red-600 hover:border-gray-400 rounded bg-blue-50 px-2 py-1.5 group">
+                            <span className="absolute z-50 start-full top-1/2 ms-1 -translate-y-full rounded bg-gray-900 px-1 py-0.5 text-xs font-medium text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                              Remove
+                            </span>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              strokeWidth="1.5"
+                              stroke="currentColor"
+                              className="h-4 w-4"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>

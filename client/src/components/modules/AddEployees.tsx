@@ -1,11 +1,23 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import SuccessModel from "./SuccessModel";
 
-const AddEployees = () => {
+const AddEployees: React.FC = () => {
   const [EmpID, setEmpID] = useState("");
   const [name, setName] = useState("");
   const [ContactNo, setContactNo] = useState("");
   const [Address, setAddress] = useState("");
   const [Joindate, setJoindate] = useState("");
+  const [msg, setMsg] = useState("");
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+
+  const handleisSuccessModelOpen = () => {
+    setIsSuccessModalOpen(false);
+  };
+
+  const handleCreate = () => {
+    setMsg(`employee ${name}`);
+    setIsSuccessModalOpen(true);
+  };
 
   return (
     <section className="bg-white rounded-2xl">
@@ -155,7 +167,10 @@ const AddEployees = () => {
               </div>
 
               <div className="col-span-6 sm:flex sm:items-center sm:gap-4">
-                <button className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500">
+                <button
+                  className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500"
+                  onClick={handleCreate}
+                >
                   Create an account
                 </button>
                 <button className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500">
@@ -166,6 +181,11 @@ const AddEployees = () => {
           </div>
         </main>
       </div>
+      <SuccessModel
+        isOpen={isSuccessModalOpen}
+        onClose={handleisSuccessModelOpen}
+        msg={msg}
+      />
     </section>
   );
 };

@@ -1,10 +1,27 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import CreateOrder from "./CreateOrder";
+import GoBack from "./Goback";
 
 const CreateBill: React.FC = () => {
   const navigate = useNavigate();
+  const [isOrderOpen, setIsOrderOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleCreate = () => {
+  const handleCloseOrder = () => {
+    setIsOrderOpen(false);
+    // window.location.reload();
+  };
+
+  const handleCreateOrder = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsOrderOpen(true);
+      setIsLoading(false);
+    }, 1000);
+  };
+
+  const handleCreateBill = () => {
     navigate("/items");
   };
 
@@ -119,18 +136,28 @@ const CreateBill: React.FC = () => {
               <div className="col-span-6 mx-6 sm:flex sm:items-baseline sm:gap-10">
                 <button
                   className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500"
-                  onClick={handleCreate}
+                  onClick={handleCreateBill}
                 >
                   Create bill
                 </button>
-                <button className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-16 ml-5 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500">
-                  Cancel
+                <button
+                  className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-10 ml-5 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500"
+                  onClick={handleCreateOrder}
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Loading..." : "Create order"}
                 </button>
               </div>
             </form>
+            <GoBack className="inline-block shrink-0 rounded-md border border-blue-600 px-16 ml-5 mt-6 py-3 text-sm font-medium text-black transition hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500" />
           </div>
         </main>
       </div>
+      <CreateOrder
+        isOpen={isOrderOpen}
+        onClose={handleCloseOrder}
+        initialItemList={[]}
+      />
     </section>
   );
 };

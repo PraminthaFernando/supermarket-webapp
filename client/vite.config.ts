@@ -28,4 +28,11 @@ export default defineConfig({
         : {},
     }),
   ],
-})
+  css: {
+    preprocessorOptions: {
+      CSS: {
+        additionalData: `@import "./src/styleAssets/RootNbodyStyle.css";`,
+      },
+    },
+  },
+});

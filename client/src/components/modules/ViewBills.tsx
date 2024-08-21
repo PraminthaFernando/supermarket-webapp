@@ -1,17 +1,32 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import OrderItems from "./OrderItems";
 import GoBack from "./Goback";
+import axios from "axios";
 
 const ViewBills: React.FC = () => {
   const [BillID, setBillID] = useState("");
   const [isOrderItemsOpen, setIsOrderItemsOpen] = useState(false);
+  const [bills, setBills] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchAllBills = async () => {
+      try {
+        const res = await axios.get("http://localhost:8000/bills");
+        setBills(res.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchAllBills();
+  }, []);
 
   const handleCloseOrderItems = () => {
     setIsOrderItemsOpen(false);
     // window.location.reload();
   };
 
-  const handleViewClick = () => {
+  const handleViewClick = (id: any) => {
+    setBillID(id);
     setIsOrderItemsOpen(true);
   };
   return (
@@ -24,12 +39,17 @@ const ViewBills: React.FC = () => {
         <table className="min-w-fit min-h-full p-5 m-8 rounded-lg divide-y-2 overflow-hidden shadow-xl transform transition-all divide-gray-300 bg-white text-sm items-start">
           <thead className="ltr:text-left rtl:text-right">
             <tr>
-              <th className="whitespace-nowrap px-8 py-4 font-medium text-gray-900"></th>
               <th className="whitespace-nowrap px-8 py-4 font-medium text-gray-900">
-                Open Date
+                ID
               </th>
               <th className="whitespace-nowrap px-8 py-4 font-medium text-gray-900">
-                Close Date
+                Date
+              </th>
+              <th className="whitespace-nowrap px-8 py-4 font-medium text-gray-900">
+                Total Price
+              </th>
+              <th className="whitespace-nowrap px-8 py-4 font-medium text-gray-900">
+                Customer ID
               </th>
               <th className="whitespace-nowrap px-8 py-4 font-medium text-gray-900">
                 Status
@@ -39,72 +59,33 @@ const ViewBills: React.FC = () => {
           </thead>
 
           <tbody className="divide-y divide-gray-200">
-            <tr>
-              <td className="whitespace-nowrap px-8 py-3 font-medium text-gray-900">
-                1
-              </td>
-              <td className="whitespace-nowrap px-8 py-3 text-gray-700">
-                24/05/1995
-              </td>
-              <td className="whitespace-nowrap px-8 py-3 text-gray-700">
-                24/05/1996
-              </td>
-              <td className="whitespace-nowrap px-8 py-3 text-gray-700">
-                complete
-              </td>
-              <td className="whitespace-nowrap px-8 py-3">
-                <button
-                  className="inline-block rounded bg-indigo-600 px-8 py-3 text-xs font-medium text-white hover:bg-indigo-700"
-                  onClick={handleViewClick}
-                >
-                  View
-                </button>
-              </td>
-            </tr>
-
-            <tr>
-              <td className="whitespace-nowrap px-8 py-3 font-medium text-gray-900">
-                2
-              </td>
-              <td className="whitespace-nowrap px-8 py-3 text-gray-700">
-                04/11/1980
-              </td>
-              <td className="whitespace-nowrap px-8 py-3 text-gray-700">No</td>
-              <td className="whitespace-nowrap px-8 py-3 text-gray-700">
-                Pending
-              </td>
-              <td className="whitespace-nowrap px-8 py-3">
-                <button
-                  className="inline-block rounded bg-indigo-600 px-8 py-3 text-xs font-medium text-white hover:bg-indigo-700"
-                  onClick={handleViewClick}
-                >
-                  View
-                </button>
-              </td>
-            </tr>
-
-            <tr>
-              <td className="whitespace-nowrap px-8 py-3 font-medium text-gray-900">
-                3
-              </td>
-              <td className="whitespace-nowrap px-8 py-3 text-gray-700">
-                24/05/2024
-              </td>
-              <td className="whitespace-nowrap px-8 py-3 text-gray-700">
-                24/06/2024
-              </td>
-              <td className="whitespace-nowrap px-8 py-3 text-gray-700">
-                Complete
-              </td>
-              <td className="whitespace-nowrap px-8 py-3">
-                <button
-                  className="inline-block rounded bg-indigo-600 px-8 py-3 text-xs font-medium text-white hover:bg-indigo-700"
-                  onClick={handleViewClick}
-                >
-                  View
-                </button>
-              </td>
-            </tr>
+            {bills.map((bill) => (
+              <tr>
+                <td className="whitespace-nowrap px-8 py-3 font-medium text-gray-900">
+                  {bill.ID}
+                </td>
+                <td className="whitespace-nowrap px-8 py-3 text-gray-700">
+                  {bill.Date}
+                </td>
+                <td className="whitespace-nowrap px-8 py-3 text-gray-700">
+                  {bill.Total_Price}
+                </td>
+                <td className="whitespace-nowrap px-8 py-3 text-gray-700">
+                  {bill.Customer_ID}
+                </td>
+                <td className="whitespace-nowrap px-8 py-3 text-gray-700">
+                  {bill.Status}
+                </td>
+                <td className="whitespace-nowrap px-8 py-3">
+                  <button
+                    className="inline-block rounded bg-indigo-600 px-8 py-3 text-xs font-medium text-white hover:bg-indigo-700"
+                    onClick={() => handleViewClick(bill.ID)}
+                  >
+                    View
+                  </button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
         <GoBack label="Back to Home" className="mt-4" />

@@ -1,9 +1,23 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import RootNbodyStyle from "./RootNbodyStyle";
+import axios from "axios";
 
 const ViewUsers: React.FC = () => {
   const [State, setState] = useState(false);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchAllUsers = async () => {
+      try {
+        const res = await axios.get("http://localhost:8000/users");
+        setUsers(res.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchAllUsers();
+  }, []);
 
   const handleCheckboxChange = (id: string) => {
     if (selectedRows.includes(id)) {
@@ -64,60 +78,35 @@ const ViewUsers: React.FC = () => {
             </thead>
 
             <tbody className="divide-y divide-gray-200">
-              <tr>
-                <td className="px-4 py-2">
-                  <label className="sr-only" htmlFor="Row1">
-                    Row 1
-                  </label>
+              {users.map((user) => (
+                <tr>
+                  <td className="px-4 py-2">
+                    <label className="sr-only" htmlFor="Row1">
+                      Row 1
+                    </label>
 
-                  <input
-                    className="size-4 rounded border-gray-300 bg-white"
-                    type="checkbox"
-                    id="Row1"
-                    // checked={selectedRows.includes("Row1")}
-                    onChange={() => handleCheckboxChange("Row1")}
-                  />
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-                  John Doe
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  0771392174
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  24/05/1995
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  83/23, siyabalapaitiya, makewita
-                </td>
-              </tr>
-
-              <tr>
-                <td className="px-4 py-2">
-                  <label className="sr-only" htmlFor="Row3">
-                    Row 2
-                  </label>
-
-                  <input
-                    className="size-4 rounded border-gray-300 bg-white checked:bg-blue-500"
-                    type="checkbox"
-                    id="Row2"
-                    onChange={() => handleCheckboxChange("Row2")}
-                  />
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-                  Gary Barlow
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  0769764966
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  24/05/1995
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  5/B, Yakkala, Gampaha
-                </td>
-              </tr>
+                    <input
+                      className="size-4 rounded border-gray-300 bg-white"
+                      type="checkbox"
+                      id={user.ID}
+                      // checked={selectedRows.includes("Row1")}
+                      onChange={() => handleCheckboxChange(user.ID)}
+                    />
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
+                    {user.Name}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                    {user.Contact_No}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                    {user.Join_Date}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                    {user.Address}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
           <div

@@ -1,9 +1,24 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import GoBack from "./Goback";
 import RootNbodyStyle from "./RootNbodyStyle";
 
 const ViewVendors: React.FC = () => {
   const [State, setState] = useState(false);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [vendors, setVendors] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchAllCategorie = async () => {
+      try {
+        const res = await axios.get("http://localhost:8000/vendors");
+        setVendors(res.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchAllCategorie();
+  }, []);
 
   const handleCheckboxChange = (id: string) => {
     if (selectedRows.includes(id)) {
@@ -67,66 +82,38 @@ const ViewVendors: React.FC = () => {
             </thead>
 
             <tbody className="divide-y divide-gray-200">
-              <tr>
-                <td className="px-4 py-2">
-                  <label className="sr-only" htmlFor="Row1">
-                    Row 1
-                  </label>
+              {vendors.map((vendor) => (
+                <tr>
+                  <td className="px-4 py-2">
+                    <label className="sr-only" htmlFor="Row1">
+                      Row 1
+                    </label>
 
-                  <input
-                    className="size-4 rounded border-gray-300 bg-white"
-                    type="checkbox"
-                    id="Row1"
-                    // checked={selectedRows.includes("Row1")}
-                    onChange={() => handleCheckboxChange("Row1")}
-                  />
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-                  YP
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  Yapa
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  0712333946
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  Famer
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  Dambulla
-                </td>
-              </tr>
-
-              <tr>
-                <td className="px-4 py-2">
-                  <label className="sr-only" htmlFor="Row3">
-                    Row 2
-                  </label>
-
-                  <input
-                    className="size-4 rounded border-gray-300 bg-white checked:bg-blue-500"
-                    type="checkbox"
-                    id="Row2"
-                    onChange={() => handleCheckboxChange("Row2")}
-                  />
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-                  PD
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  Pramintha
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  0710924987
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  Lorry
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  Nuwara Eliya
-                </td>
-              </tr>
+                    <input
+                      className="size-4 rounded border-gray-300 bg-white"
+                      type="checkbox"
+                      id={vendor.ID}
+                      // checked={selectedRows.includes("Row1")}
+                      onChange={() => handleCheckboxChange(vendor.ID)}
+                    />
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
+                    {vendor.ID}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                    {vendor.Name}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                    {vendor.Contact_No}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                    {vendor.Role}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                    {vendor.Place_ID}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
           <div
@@ -149,6 +136,7 @@ const ViewVendors: React.FC = () => {
               Cancel
             </button>
           </div>
+          <GoBack label="Back to Home" className="mt-4" />
         </div>
       </div>
     </RootNbodyStyle>

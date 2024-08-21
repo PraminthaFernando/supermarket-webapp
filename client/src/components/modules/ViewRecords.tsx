@@ -1,24 +1,24 @@
 import React, { useEffect, useState } from "react";
-import OrderItems from "./OrderItems";
+import EditRecord from "./EditRecord";
 import axios from "axios";
 
-const ViewOrders: React.FC = () => {
-  const [BillID, setBillID] = useState("");
-  const [isOrderItemsOpen, setIsOrderItemsOpen] = useState(false);
+const ViewRecords: React.FC = () => {
+  const [recordID, setRecordID] = useState("");
   const [State, setState] = useState(false);
+  const [isEditRecordOpen, setIsEditRecordOpen] = useState(false);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
-  const [orders, setOrders] = useState<any[]>([]);
+  const [records, setRecords] = useState<any[]>([]);
 
   useEffect(() => {
-    const fetchAllplaces = async () => {
+    const fetchAllRecords = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/places");
-        setOrders(res.data);
+        const res = await axios.get("http://localhost:8000/records");
+        setRecords(res.data);
       } catch (err) {
         console.log(err);
       }
     };
-    fetchAllplaces();
+    fetchAllRecords();
   }, []);
 
   const handleCheckboxChange = (id: string) => {
@@ -41,21 +41,21 @@ const ViewOrders: React.FC = () => {
     }
   };
 
-  const handleCloseOrderItems = () => {
-    setIsOrderItemsOpen(false);
-    // window.location.reload();
+  const handleClose = () => {
+    setIsEditRecordOpen(false);
   };
 
-  const handleViewClick = (id: any) => {
-    setBillID(id);
-    setIsOrderItemsOpen(true);
+  const handleEditClick = (id: any) => {
+    setRecordID(id);
+    setIsEditRecordOpen(true);
   };
+
   return (
     <div className="overflow-x-auto flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
       <div className="fixed inset-0 bg-gray-500 bg-opacity-50 transition-opacity"></div>
       <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-full sm:w-full">
         <h1 className="mt-6 text-xl font-bold text-gray-900 text-center my-10 sm:text-3xl md:text-4xl">
-          Order list
+          Record list
         </h1>
         <table className="min-w-fit min-h-full p-5 m-8 rounded-lg divide-y-2 overflow-hidden shadow-xl transform transition-all divide-gray-300 bg-white text-sm items-start">
           <thead className="ltr:text-left rtl:text-right">
@@ -69,20 +69,20 @@ const ViewOrders: React.FC = () => {
                 ID
               </th>
               <th className="whitespace-nowrap px-8 py-4 font-medium text-gray-900">
-                Open Date
+                Payment
               </th>
               <th className="whitespace-nowrap px-8 py-4 font-medium text-gray-900">
-                Close Date
+                Date
               </th>
               <th className="whitespace-nowrap px-8 py-4 font-medium text-gray-900">
-                Status
+                Reprt ID
               </th>
               <th className="px-8 py-4"></th>
             </tr>
           </thead>
 
           <tbody className="divide-y divide-gray-200">
-            {orders.map((order) => (
+            {records.map((record) => (
               <tr>
                 <td className="px-4 py-2">
                   <label className="sr-only" htmlFor="Row1">
@@ -92,29 +92,29 @@ const ViewOrders: React.FC = () => {
                   <input
                     className="size-4 rounded border-gray-300 bg-white"
                     type="checkbox"
-                    id={order.ID}
+                    id={record.ID}
                     // checked={selectedRows.includes("Row1")}
-                    onChange={() => handleCheckboxChange(order.ID)}
+                    onChange={() => handleCheckboxChange("Row1")}
                   />
                 </td>
                 <td className="whitespace-nowrap px-8 py-3 font-medium text-gray-900">
-                  {order.ID}
+                  {record.ID}
                 </td>
                 <td className="whitespace-nowrap px-8 py-3 text-gray-700">
-                  {order.Open_Date}
+                  {record.Payment}
                 </td>
                 <td className="whitespace-nowrap px-8 py-3 text-gray-700">
-                  {order.Close_Date}
+                  {record.Date}
                 </td>
                 <td className="whitespace-nowrap px-8 py-3 text-gray-700">
-                  {order.Status}
+                  {record.Report_ID}
                 </td>
                 <td className="whitespace-nowrap px-8 py-3">
                   <button
                     className="inline-block rounded bg-indigo-600 px-8 py-3 text-xs font-medium text-white hover:bg-indigo-700"
-                    onClick={() => handleViewClick(order.Bill_ID)}
+                    onClick={() => handleEditClick(record.ID)}
                   >
-                    View
+                    Edit
                   </button>
                 </td>
               </tr>
@@ -142,13 +142,13 @@ const ViewOrders: React.FC = () => {
           </button>
         </div>
       </div>
-      <OrderItems
-        isOpen={isOrderItemsOpen}
-        onClose={handleCloseOrderItems}
-        Bill_ID={BillID}
+      <EditRecord
+        isOpen={isEditRecordOpen}
+        onClose={handleClose}
+        Record_ID={recordID}
       />
     </div>
   );
 };
 
-export default ViewOrders;
+export default ViewRecords;

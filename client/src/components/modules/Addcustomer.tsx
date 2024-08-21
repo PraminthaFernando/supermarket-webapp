@@ -1,10 +1,106 @@
-import React, { useState } from "react";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import SuccessModel from "./SuccessModel";
+import ErrorModal from "./ErrorModel";
+import { useNavigate } from "react-router-dom";
 
-function Addcustomer() {
+const Addcustomer: React.FC = () => {
   const [CustomerID, setCustomerID] = useState("");
+  const [id, setId] = useState("");
   const [name, setName] = useState("");
   const [ContactNo, setContactNo] = useState("");
-  const [Joindate, setJoindate] = useState("");
+  const [Joindate, setJoindate] = useState(
+    new Date().toISOString().slice(0, 10)
+  );
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [validationMessage, setValidationMessage] = useState("");
+  const [isErrorModelOpen, setIsErrorModelOpen] = useState(false);
+  const [isSuccessModelOpen, setIsSuccessModelOpen] = useState(false);
+  const [validContact, setValidContact] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchAllCustomers = async () => {
+      try {
+        const res = await axios.get("http://localhost:8000/customers");
+        setCustomers(res.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchAllCustomers();
+  }, []);
+
+  const handleClose = () => {
+    if (isErrorModelOpen) {
+      setIsErrorModelOpen(false);
+    } else {
+      setIsSuccessModelOpen(false);
+    }
+  };
+
+  const handleChange = (event: any) => {
+    const selectedValue = event.target.value.toString();
+    setId(selectedValue);
+
+    // Check if the selected value exists in the array of customer IDs
+    const customerIDs = customers.map((customer) => customer.ID);
+
+    if (customerIDs.includes(selectedValue)) {
+      setValidationMessage("This customer ID already exists."); // Log validation message if needed
+    } else {
+      setValidationMessage("");
+      setCustomerID(selectedValue); // Set the customer ID if not found
+    }
+  };
+
+  const handleConfirm = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    if (validationMessage) {
+      setErrorMessage("Invalid customer ID");
+      setIsErrorModelOpen(true);
+    } else if (!validContact) {
+      setErrorMessage("Invalid contact number");
+      setIsErrorModelOpen(true);
+    } else {
+      try {
+        await axios.put("http://localhost:8000/customer/create", {
+          ID: CustomerID,
+          Name: name,
+          Contact: ContactNo,
+          Join_Date: Joindate,
+        });
+        setIsSuccessModelOpen(true);
+        {
+          setId(""),
+            setName(""),
+            setContactNo(""),
+            setValidContact(false),
+            setValidationMessage("");
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  };
+
+  const handleCancel = () => {
+    navigate("/UserDashboard");
+  };
+
+  const handleContactNoChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const inputValue = event.target.value;
+    setContactNo(inputValue);
+
+    if (inputValue.length === 10) {
+      setValidContact(true);
+    } else {
+      setValidContact(false);
+    }
+  };
 
   return (
     <section className="bg-white rounded-2xl">
@@ -47,12 +143,18 @@ function Addcustomer() {
                   type="text"
                   id="Short"
                   name="short"
-                  value={CustomerID}
+                  value={id}
                   className="mt-1 p-1 h-8 border-2 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
                   placeholder="enter customer ID"
-                  onChange={(e) => setCustomerID(e.target.value)}
+                  onChange={(e) => handleChange(e)}
+                  autoFocus
                   required
                 />
+                {validationMessage && (
+                  <p style={{ color: "red", marginTop: "5px" }}>
+                    {validationMessage}
+                  </p>
+                )}
               </div>
 
               <div className="col-span-6">
@@ -91,9 +193,32 @@ function Addcustomer() {
                   value={ContactNo}
                   className="mt-1 h-8 border-2 p-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
                   placeholder="customer contact number"
-                  onChange={(e) => setContactNo(e.target.value)}
+                  onChange={(e) => handleContactNoChange(e)}
                   required
                 />
+                {validContact ? (
+                  <p
+                    style={{
+                      color: "green",
+                      marginTop: "5px",
+                      fontSize: "12.5px",
+                    }}
+                  >
+                    Valid contact number
+                  </p>
+                ) : ContactNo.length !== 0 ? (
+                  <p
+                    style={{
+                      color: "red",
+                      marginTop: "5px",
+                      fontSize: "12.5px",
+                    }}
+                  >
+                    Invalid contact number
+                  </p>
+                ) : (
+                  <p></p>
+                )}
               </div>
 
               <div className="col-span-6 sm:col-span-3">
@@ -133,10 +258,16 @@ function Addcustomer() {
               </div>
 
               <div className="col-span-6 sm:flex sm:items-center sm:gap-4">
-                <button className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500">
+                <button
+                  className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500"
+                  onClick={handleConfirm}
+                >
                   Create an account
                 </button>
-                <button className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500">
+                <button
+                  className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500"
+                  onClick={handleCancel}
+                >
                   Cancel
                 </button>
               </div>
@@ -144,8 +275,18 @@ function Addcustomer() {
           </div>
         </main>
       </div>
+      <ErrorModal
+        isOpen={isErrorModelOpen}
+        onClose={handleClose}
+        errorMessage={errorMessage}
+      />
+      <SuccessModel
+        isOpen={isSuccessModelOpen}
+        onClose={handleClose}
+        msg="customer"
+      />
     </section>
   );
-}
+};
 
 export default Addcustomer;

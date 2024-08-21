@@ -1,17 +1,30 @@
-import React, { useState } from "react";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
 
 interface SelectEmpProps {
   isOpen: boolean;
-  onClose: () => void;
-  Date: string;
+  onClose: (des: string) => void;
 }
 
-const SelectEmp: React.FC<SelectEmpProps> = ({ isOpen, onClose, Date }) => {
-  const [Employees, setEmployees] = useState(["Amal", "Kamal", "Nimal"]);
+const SelectEmp: React.FC<SelectEmpProps> = ({ isOpen, onClose }) => {
+  const [Employees, setEmployees] = useState<any[]>([]);
+  const [des, setDes] = useState("");
+
+  useEffect(() => {
+    const fetchAllEmps = async () => {
+      try {
+        const res = await axios.get("http://localhost:8000/employees");
+        setEmployees(res.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchAllEmps;
+  }, []);
 
   const handleClick = (event: any) => {
     event.preventDefault();
-    onClose();
+    onClose(des);
   };
 
   return (
@@ -58,12 +71,12 @@ const SelectEmp: React.FC<SelectEmpProps> = ({ isOpen, onClose, Date }) => {
                     id="HeadlineAct"
                     required
                     className="mt-1.5 w-full rounded-lg bg-gray-200 border-2 h-8 border-gray-300 text-gray-700 sm:text-sm"
-                    //   onChange={e => }
+                    onChange={(e) => setDes(e.target.value)}
                     autoFocus
                   >
                     <option value="">select eployee</option>
                     {Employees.map((Employee) => (
-                      <option value={Employee}>{Employee}</option>
+                      <option value={Employee.Name}>{Employee.Name}</option>
                     ))}
                   </select>
                 </div>
@@ -74,7 +87,7 @@ const SelectEmp: React.FC<SelectEmpProps> = ({ isOpen, onClose, Date }) => {
             <button
               type="button"
               className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
-              onClick={onClose}
+              onClick={handleClick}
             >
               Close
             </button>

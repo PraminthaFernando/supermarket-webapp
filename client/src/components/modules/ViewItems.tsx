@@ -1,9 +1,24 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import RootNbodyStyle from "./RootNbodyStyle";
+import GoBack from "./Goback";
+import axios from "axios";
 
 const ViewItems: React.FC = () => {
   const [State, setState] = useState(false);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [items, setItems] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchAllitems = async () => {
+      try {
+        const res = await axios.get("http://localhost:8000/items");
+        setItems(res.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchAllitems();
+  }, []);
 
   const handleCheckboxChange = (id: string) => {
     if (selectedRows.includes(id)) {
@@ -50,48 +65,29 @@ const ViewItems: React.FC = () => {
             </thead>
 
             <tbody className="divide-y divide-gray-200">
-              <tr>
-                <td className="px-4 py-2">
-                  <label className="sr-only" htmlFor="Row1">
-                    Row 1
-                  </label>
+              {items.map((item) => (
+                <tr>
+                  <td className="px-4 py-2">
+                    <label className="sr-only" htmlFor="Row1">
+                      Row 1
+                    </label>
 
-                  <input
-                    className="size-4 rounded border-gray-300 bg-white"
-                    type="checkbox"
-                    id="Row1"
-                    // checked={selectedRows.includes("Row1")}
-                    onChange={() => handleCheckboxChange("Row1")}
-                  />
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-                  BB
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  Beens
-                </td>
-              </tr>
-
-              <tr>
-                <td className="px-4 py-2">
-                  <label className="sr-only" htmlFor="Row3">
-                    Row 2
-                  </label>
-
-                  <input
-                    className="size-4 rounded border-gray-300 bg-white checked:bg-blue-500"
-                    type="checkbox"
-                    id="Row2"
-                    onChange={() => handleCheckboxChange("Row2")}
-                  />
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-                  PP
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  Potatoes
-                </td>
-              </tr>
+                    <input
+                      className="size-4 rounded border-gray-300 bg-white"
+                      type="checkbox"
+                      id={item.ID}
+                      // checked={selectedRows.includes("Row1")}
+                      onChange={() => handleCheckboxChange(item.ID)}
+                    />
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
+                    {item.ID}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                    {item.Name}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
           <div
@@ -114,6 +110,7 @@ const ViewItems: React.FC = () => {
               Cancel
             </button>
           </div>
+          <GoBack label="Back to Home" className="mt-4" />
         </div>
       </div>
     </RootNbodyStyle>

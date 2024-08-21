@@ -1,38 +1,73 @@
 // import { ipcRenderer } from "electron";
 import React, { useEffect, useState } from "react";
 import SelectEmp from "./SelectEmp";
-import { useLocation, useNavigate } from "react-router-dom";
+import ErrorModal from "./ErrorModel";
+import SuccessModel from "./SuccessModel";
+import axios from "axios";
 
 const CreateRecord: React.FC = () => {
-  const [Payments, setPayments] = useState(["Salary", "Stock", "Other"]);
-  const [Pay, setPay] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [data, setData] = useState({
+    Payment: "",
+    Price: 0,
+    Date: new Date().toISOString().slice(0, 10),
+    description: "",
+  });
+  const Payments = ["Salary", "Stock", "Other"];
+  const [temp, setTemp] = useState("");
   const [isSelectEmpOpen, setIsSelectEmpOpen] = useState(false);
+  const [isErrorModelOpen, setIsErrorModelOpen] = useState(false);
+  const [isSuccessModelOpen, setIsSuccessModelOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [State, setState] = useState(false);
 
-  const handleCloseSelectEmp = () => {
+  const handleCloseSelectEmp = (des: string) => {
     setIsSelectEmpOpen(false);
-    window.location.reload();
+    data.description = des;
   };
 
-  const handleChange = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleChange = (e: any) => {
+    setData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleConfirm = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (Pay === "Salary") {
-      setIsSelectEmpOpen(true);
+    if (data.Payment === "" && data.Price <= 0) {
+      setIsErrorModelOpen(true);
     } else {
-      window.location.reload();
+      try {
+        setIsLoading(true);
+        const res = await axios.put(
+          "http://localhost:8000/record/create",
+          data
+        );
+        console.log(res);
+        setIsSuccessModelOpen(true);
+        setTimeout(() => {
+          window.location.reload();
+        }, 4000);
+      } catch (err) {
+        console.log(err);
+      }
     }
   };
-
   useEffect(() => {
-    if (Pay === "Salary") {
+    if (data.Payment === "Salary") {
       setState(false);
-    } else if (Pay === "Stock" || Pay === "Other") {
+      setIsSelectEmpOpen(true);
+    } else if (data.Payment === "Stock" || data.Payment === "Other") {
       setState(true);
     } else {
       setState(false);
     }
-  });
+  }, [data.Payment]);
+
+  const handleCloseErrorModel = () => {
+    setIsErrorModelOpen(false);
+  };
+
+  const handleCloseSuccessModel = () => {
+    setIsSuccessModelOpen(false);
+  };
 
   return (
     <section className="bg-white rounded-2xl">
@@ -46,7 +81,7 @@ const CreateRecord: React.FC = () => {
             <form
               action="#"
               className="mt-8 grid grid-cols-6 gap-6 shadow-xl p-3 rounded-xl"
-              onSubmit={handleChange}
+              onSubmit={handleConfirm}
             >
               <div className="col-span-6 sm:col-span-3">
                 <label
@@ -58,11 +93,11 @@ const CreateRecord: React.FC = () => {
                 </label>
 
                 <select
-                  name="HeadlineAct"
+                  name="Payment"
                   id="HeadlineAct"
                   required
                   className="mt-1.5 w-full rounded-lg bg-gray-200 border-2 h-8 border-gray-300 text-gray-700 sm:text-sm"
-                  onChange={(e) => setPay(e.target.value)}
+                  onChange={(e) => handleChange(e)}
                   autoFocus
                 >
                   <option value="">select payment</option>
@@ -83,8 +118,10 @@ const CreateRecord: React.FC = () => {
                 <input
                   type="number"
                   id="FirstName"
-                  name="price"
+                  name="Price"
+                  // value={data.Price}
                   className="mt-1.5 h-8 border-2 p-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
+                  onChange={(e) => handleChange(e)}
                   required
                 />
               </div>
@@ -101,7 +138,7 @@ const CreateRecord: React.FC = () => {
                   <input
                     type="date"
                     id="LastName"
-                    value={date}
+                    value={data.Date}
                     defaultValue={new Date().toISOString().slice(0, 10)} //new Date().toISOString().slice(0, 10)
                     name="last_name"
                     // onChange={(e) => setDate(e.)}
@@ -136,9 +173,11 @@ const CreateRecord: React.FC = () => {
                 <div className="overflow-hidden rounded-lg mt-1.5 border border-gray-200 shadow-sm focus-within:border-blue-600 focus-within:ring-1 focus-within:ring-blue-600">
                   <textarea
                     id="OrderNotes"
+                    name="description"
                     className="w-full resize-none bg-white text-black p-1 border-none align-top focus:ring-0 sm:text-sm"
                     rows={4}
                     placeholder="Enter any additional payment notes..."
+                    onChange={(e) => setTemp(e.target.value)}
                   ></textarea>
 
                   <div className="flex items-center justify-end gap-2 bg-white p-3">
@@ -152,6 +191,7 @@ const CreateRecord: React.FC = () => {
                     <button
                       type="button"
                       className="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
+                      onClick={() => (data.description = temp)}
                     >
                       Add
                     </button>
@@ -162,25 +202,26 @@ const CreateRecord: React.FC = () => {
                 <button
                   type="submit"
                   className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500"
+                  onClick={() => handleConfirm}
+                  aria-disabled={isLoading}
                 >
-                  Confirm
+                  {isLoading ? "loading..." : "Confirm"}
                 </button>
               </div>
             </form>
-            {/* <button
-              type="submit"
-              className="block w-full my-3 rounded-lg bg-blue-600 px-5 py-3 text-sm font-medium text-white"
-              onClick={handleChange}
-            >
-              Sign in
-            </button> */}
           </div>
         </main>
       </div>
-      <SelectEmp
-        isOpen={isSelectEmpOpen}
-        onClose={handleCloseSelectEmp}
-        Date={date}
+      <SelectEmp isOpen={isSelectEmpOpen} onClose={handleCloseSelectEmp} />
+      <ErrorModal
+        isOpen={isErrorModelOpen}
+        onClose={handleCloseErrorModel}
+        errorMessage="an error occured with price"
+      />
+      <SuccessModel
+        isOpen={isSuccessModelOpen}
+        msg="Successfully create the record"
+        onClose={handleCloseSuccessModel}
       />
     </section>
   );

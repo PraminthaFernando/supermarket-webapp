@@ -35,6 +35,7 @@ const Login: React.FC = () => {
   const handleSubmit = async () => {
     if (username === "B80") {
       if (password === "1234") {
+        sessionStorage.setItem("idex", "0");
         navigate("/UserDashboard");
       } else {
         setPassword("");

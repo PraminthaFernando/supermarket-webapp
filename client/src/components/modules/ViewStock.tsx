@@ -1,9 +1,27 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import RootNbodyStyle from "./RootNbodyStyle";
+import EditStock from "./EditStock";
+import GoBack from "./Goback";
+import axios from "axios";
 
 const ViewStock: React.FC = () => {
+  const [stockID, setStockID] = useState("");
   const [State, setState] = useState(false);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [isEditStockOpen, setIsEditStockOpen] = useState(false);
+  const [stocks, setStocks] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchStock = async () => {
+      try {
+        const res = await axios.get("http://localhost:8000/stock");
+        setStocks(res.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchStock();
+  }, []);
 
   const handleCheckboxChange = (id: string) => {
     if (selectedRows.includes(id)) {
@@ -22,6 +40,19 @@ const ViewStock: React.FC = () => {
       setState(false);
     } else {
       setState(true);
+    }
+  };
+
+  const handleClose = () => {
+    setIsEditStockOpen(false);
+  };
+
+  const handleEditClick = (id: any) => {
+    if (isEditStockOpen) {
+      setIsEditStockOpen(false);
+    } else {
+      setStockID(id);
+      setIsEditStockOpen(true);
     }
   };
   return (
@@ -63,70 +94,51 @@ const ViewStock: React.FC = () => {
                 <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
                   Vendor
                 </th>
+                <th className="px-8 py-4"></th>
               </tr>
             </thead>
 
             <tbody className="divide-y divide-gray-200">
-              <tr>
-                <td className="px-4 py-2">
-                  <label className="sr-only" htmlFor="Row1">
-                    Row 1
-                  </label>
+              {stocks.map((stock) => (
+                <tr>
+                  <td className="px-4 py-2">
+                    <label className="sr-only" htmlFor="Row1">
+                      Row 1
+                    </label>
 
-                  <input
-                    className="size-4 rounded border-gray-300 bg-white"
-                    type="checkbox"
-                    id="Row1"
-                    // checked={selectedRows.includes("Row1")}
-                    onChange={() => handleCheckboxChange("Row1")}
-                  />
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-                  Beens
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  Dambulla
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  40
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  200
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  Sunil
-                </td>
-              </tr>
-
-              <tr>
-                <td className="px-4 py-2">
-                  <label className="sr-only" htmlFor="Row3">
-                    Row 2
-                  </label>
-
-                  <input
-                    className="size-4 rounded border-gray-300 bg-white checked:bg-blue-500"
-                    type="checkbox"
-                    id="Row2"
-                    onChange={() => handleCheckboxChange("Row2")}
-                  />
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-                  Potatoes
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  Puttalama
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  30
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  150
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  Kamal
-                </td>
-              </tr>
+                    <input
+                      className="size-4 rounded border-gray-300 bg-white"
+                      type="checkbox"
+                      id={stock.ID}
+                      // checked={selectedRows.includes("Row1")}
+                      onChange={() => handleCheckboxChange("Row1")}
+                    />
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
+                    {stock.item_ID}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                    {stock.Place_ID}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                    {stock.Quantity}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                    {stock.Unit_Price}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                    {stock.Vendor_ID}
+                  </td>
+                  <td className="whitespace-nowrap px-8 py-3">
+                    <button
+                      className="inline-block rounded bg-indigo-600 px-8 py-3 text-xs font-medium text-white hover:bg-indigo-700"
+                      onClick={() => handleEditClick(stock.ID)}
+                    >
+                      Edit
+                    </button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
           <div
@@ -149,7 +161,13 @@ const ViewStock: React.FC = () => {
               Cancel
             </button>
           </div>
+          <GoBack label="Back to Home" className="mt-4" />
         </div>
+        <EditStock
+          isOpen={isEditStockOpen}
+          onClose={handleClose}
+          stock_ID={stockID}
+        />
       </div>
     </RootNbodyStyle>
   );

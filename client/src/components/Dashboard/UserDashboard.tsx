@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import BillBoard from "./BillBoard";
 import CustomerBoard from "./CustomerBoard";
 import Employeeboard from "./Employeeboard";
 import ItemBoard from "./ItemBoard";
 import PlacesBoard from "./PlacesBoard";
 import VendorBoard from "./VendorBoard";
+import RecordBoard from "./RecordBoard";
+import StockBoard from "./StockBoard";
 
 interface Link {
   label: string;
@@ -14,36 +16,18 @@ interface Link {
 }
 
 const UserDashboard: React.FC = () => {
-  const linkIndex =
-    sessionStorage.getItem("index") !== null
-      ? Number(sessionStorage.getItem("index"))
-      : null;
-  const [activeLink, setActiveLink] = useState<number | null>(linkIndex);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isBIllBoardOpen, setISBIllBoardOpen] = useState(true);
-  const [isCustomerBoardOpen, setIsCustomerBoardOpen] = useState(false);
-  const [isEmployeeBoardOpen, setIsEmployeeBoardOpen] = useState(false);
-  const [isItemBoardOpen, setIsItemBoardOpen] = useState(false);
-  const [isPlaceBoardOpen, setIsPlaceBoardOpen] = useState(false);
-  const [isVendorBoardOpen, setIsVendorBoardOpen] = useState(false);
-
-  const handleLinkClick = (index: number) => {
-    setIsLoading(true);
-    setActiveLink(index);
-    setTimeout(() => {
-      links.forEach((link) => link.closeFunc());
-      sessionStorage.setItem("index", String(index));
-      links[index].activeFunc();
-      setIsLoading(false);
-    }, 600);
-  };
-
   const links: Link[] = [
     {
       label: "Billing",
       href: "#",
       activeFunc: () => setISBIllBoardOpen(true),
       closeFunc: () => setISBIllBoardOpen(false),
+    },
+    {
+      label: "Stock",
+      href: "#",
+      activeFunc: () => setIsStockBoardOpen(true),
+      closeFunc: () => setIsStockBoardOpen(false),
     },
     {
       label: "Customers",
@@ -75,7 +59,52 @@ const UserDashboard: React.FC = () => {
       activeFunc: () => setIsVendorBoardOpen(true),
       closeFunc: () => setIsVendorBoardOpen(false),
     },
+    {
+      label: "Records",
+      href: "#",
+      activeFunc: () => setIsRecordBoardOpen(true),
+      closeFunc: () => setIsRecordBoardOpen(false),
+    },
   ];
+
+  const linkIndex =
+    sessionStorage.getItem("index") !== null
+      ? Number(sessionStorage.getItem("index"))
+      : null;
+  const [activeLink, setActiveLink] = useState<number | null>(linkIndex);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isBIllBoardOpen, setISBIllBoardOpen] = useState(false);
+  const [isCustomerBoardOpen, setIsCustomerBoardOpen] = useState(false);
+  const [isEmployeeBoardOpen, setIsEmployeeBoardOpen] = useState(false);
+  const [isItemBoardOpen, setIsItemBoardOpen] = useState(false);
+  const [isPlaceBoardOpen, setIsPlaceBoardOpen] = useState(false);
+  const [isVendorBoardOpen, setIsVendorBoardOpen] = useState(false);
+  const [isRecordBoardOpen, setIsRecordBoardOpen] = useState(false);
+  const [isStockBoardOpen, setIsStockBoardOpen] = useState(false);
+
+  // console.log(linkIndex);
+
+  useEffect(() => {
+    const active = (activeLink: number | null) => {
+      console.log(linkIndex);
+      if (activeLink) {
+        links[activeLink].activeFunc();
+      }
+    };
+    active(activeLink);
+  }, []);
+
+  const handleLinkClick = (index: number) => {
+    setIsLoading(true);
+    setActiveLink(index);
+    setTimeout(() => {
+      links.forEach((link) => link.closeFunc());
+      links[index].activeFunc();
+      sessionStorage.setItem("index", String(index));
+      setIsLoading(false);
+    }, 500);
+    // console.log(index);
+  };
 
   return (
     <div className="fixed z-2 inset-0 flex flex-row flex-nowrap text-left">
@@ -100,8 +129,6 @@ const UserDashboard: React.FC = () => {
           ))}
         </nav>
       </div>
-
-      {/* Right-side content */}
       <div className="w-full bg-white opacity-85">
         <BillBoard isOpen={isBIllBoardOpen} />
         <CustomerBoard isOpen={isCustomerBoardOpen} />
@@ -109,6 +136,8 @@ const UserDashboard: React.FC = () => {
         <ItemBoard isOpen={isItemBoardOpen} />
         <PlacesBoard isOpen={isPlaceBoardOpen} />
         <VendorBoard isOpen={isVendorBoardOpen} />
+        <RecordBoard isOpen={isRecordBoardOpen} />
+        <StockBoard isOpen={isStockBoardOpen} />
       </div>
     </div>
   );

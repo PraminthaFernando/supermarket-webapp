@@ -26,6 +26,7 @@ import CreateOrder from "components/modules/CreateOrder";
 import ViewOrders from "components/modules/ViewOrders";
 import ViewBills from "components/modules/ViewBills";
 import BillBoard from "components/Dashboard/BillBoard";
+import ViewRecords from "components/modules/ViewRecords";
 
 function App() {
   return (
@@ -52,6 +53,12 @@ function App() {
           <Route path="/ViewVendors" element={<ViewVendors />}></Route>
           <Route path="/Addvendors" element={<Addvendors />}></Route>
           <Route path="/REvendors" element={<REvendors />}></Route>
+          {/* <Route path="/CreateOrder" element={<CreateOrder isOpen={true}  />}></Route> */}
+          <Route path="/ViewOrders" element={<ViewOrders />}></Route>
+          <Route path="/CreateRecord" element={<CreateRecord />}></Route>
+          <Route path="/ViewRecords" element={<ViewRecords />}></Route>
+          <Route path="/ViewStock" element={<ViewStock />}></Route>
+          <Route path="/AddStock" element={<AddtoStock />}></Route>
         </Routes>
       </BrowserRouter>
     </>

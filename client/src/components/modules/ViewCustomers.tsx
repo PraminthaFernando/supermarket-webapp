@@ -1,9 +1,23 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import RootNbodyStyle from "./RootNbodyStyle";
+import axios from "axios";
 
 const ViewCustomers: React.FC = () => {
   const [State, setState] = useState(false);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchAllCustomers = async () => {
+      try {
+        const res = await axios.get("http://localhost:8000/customers");
+        setCustomers(res.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchAllCustomers();
+  }, []);
 
   const handleCheckboxChange = (id: string) => {
     if (selectedRows.includes(id)) {
@@ -39,14 +53,9 @@ const ViewCustomers: React.FC = () => {
                   <label htmlFor="SelectAll" className="sr-only">
                     Select All
                   </label>
-
-                  {/* <input
-                    type="checkbox"
-                    id="SelectAll"
-                    // checked={selectedRows.includes("SelectAll")}
-                    onChange={() => handleCheckboxChange("SelectAll")}
-                    className="size-4 rounded border-gray-300"
-                  /> */}
+                </th>
+                <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
+                  ID
                 </th>
                 <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
                   Name
@@ -67,62 +76,40 @@ const ViewCustomers: React.FC = () => {
             </thead>
 
             <tbody className="divide-y divide-gray-200">
-              <tr>
-                <td className="px-4 py-2">
-                  <label className="sr-only" htmlFor="Row1">
-                    Row 1
-                  </label>
+              {customers.map((customer) => (
+                <tr>
+                  <td className="px-4 py-2">
+                    <label className="sr-only" htmlFor="Row1">
+                      Row 1
+                    </label>
 
-                  <input
-                    className="size-4 rounded border-gray-300 bg-white"
-                    type="checkbox"
-                    id="Row1"
-                    // checked={selectedRows.includes("Row1")}
-                    onChange={() => handleCheckboxChange("Row1")}
-                  />
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-                  John Doe
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  0771392174
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  24/05/1995
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  500
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">5</td>
-              </tr>
-
-              <tr>
-                <td className="px-4 py-2">
-                  <label className="sr-only" htmlFor="Row3">
-                    Row 2
-                  </label>
-
-                  <input
-                    className="size-4 rounded border-gray-300 bg-white checked:bg-blue-500"
-                    type="checkbox"
-                    id="Row2"
-                    onChange={() => handleCheckboxChange("Row2")}
-                  />
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-                  Gary Barlow
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  0769764966
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  24/05/1995
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                  20,000
-                </td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">2</td>
-              </tr>
+                    <input
+                      className="size-4 rounded border-gray-300 bg-white"
+                      type="checkbox"
+                      id={customer.ID}
+                      onChange={() => handleCheckboxChange(customer.ID)}
+                    />
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
+                    {customer.ID}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                    {customer.Name}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                    {customer.Contact_No}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                    {customer.Join_Date}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                    {customer.Paid_Bill_Count}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                    {customer.Loan_Bill_Count}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
           <div

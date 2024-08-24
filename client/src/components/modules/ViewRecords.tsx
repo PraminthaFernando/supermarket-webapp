@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import EditRecord from "./EditRecord";
+import GoBack from "./Goback";
 import axios from "axios";
 
 const ViewRecords: React.FC = () => {
@@ -141,6 +142,7 @@ const ViewRecords: React.FC = () => {
             Cancel
           </button>
         </div>
+        <GoBack label="Back to Home" className="mt-4" />
       </div>
       <EditRecord
         isOpen={isEditRecordOpen}

@@ -1,8 +1,72 @@
-import React, { useState } from "react";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import SuccessModel from "./SuccessModel";
+import GoBack from "./Goback";
 
-const AddtoStock = () => {
-  const [VendorID, setVendorID] = useState("");
-  const [vendername, setVendorname] = useState("");
+const AddtoStock: React.FC = () => {
+  const [vendorID, setVendorID] = useState("");
+  const [placeID, setPlaceID] = useState("");
+  const [itemID, setItemID] = useState("");
+  const [isSuccessModelOpen, setIsSuccessModelOpen] = useState(false);
+  const [unitPrice, setUnitPrice] = useState<number | "">();
+  const [quantity, setQuantity] = useState<number | "">();
+  const [vendors, setVendors] = useState<any[]>([]);
+  const [places, setPlaces] = useState<any[]>([]);
+  const [items, setItems] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchAllDate = async () => {
+      try {
+        const res1 = await axios.get("http://localhost:8000/vendors");
+        setVendors(res1.data);
+
+        const res2 = await axios.get("http://localhost:8000/places");
+        setPlaces(res2.data);
+
+        const res3 = await axios.get("http://localhost:8000/items");
+        setItems(res3.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchAllDate();
+  }, []);
+
+  const handleChange = (id: string) => {
+    const vendorlist = vendors.map((vendor) => vendor.ID);
+    if (vendorlist.includes(id)) {
+      setVendorID(id);
+    }
+  };
+
+  const handleClose = () => {
+    setIsSuccessModelOpen(false);
+  };
+
+  const handleConfirm = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    try {
+      const res = await axios.put("http://localhost:8000/stock/add", {
+        vendor_ID: vendorID,
+        Place_ID: placeID,
+        Item_ID: itemID,
+        UnitPrice: unitPrice,
+        Quantity: quantity,
+      });
+      console.log(res);
+      setIsSuccessModelOpen(true);
+      {
+        setVendorID(""),
+          setPlaceID(""),
+          setItemID(""),
+          setUnitPrice(""),
+          setQuantity("");
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   return (
     <section className="bg-white bg-opacity-90 rounded-2xl">
       <div className="lg:grid lg:min-h-20 max-h-30 lg:grid-cols-12">
@@ -78,6 +142,8 @@ const AddtoStock = () => {
                     id="HeadlineAct"
                     className="w-full rounded-lg bg-white border-gray-300 h-8 p-1 border-2 pe-10 text-gray-900 sm:text-sm [&::-webkit-calendar-picker-indicator]:opacity-0"
                     placeholder="select a vendor"
+                    value={vendorID}
+                    onChange={(e) => handleChange(e.target.value)}
                     autoFocus
                     required
                   />
@@ -101,13 +167,9 @@ const AddtoStock = () => {
                 </div>
 
                 <datalist itemID="HeadlineAct" id="HeadlineActArtist">
-                  <option value="JM">John Mayer</option>
-                  <option value="SRV">Stevie Ray Vaughn</option>
-                  <option value="JH">Jimi Hendrix</option>
-                  <option value="BBK">B.B King</option>
-                  <option value="AK">Albert King</option>
-                  <option value="BG">Buddy Guy</option>
-                  <option value="EC">Eric Clapton</option>
+                  {vendors.map((vendor) => (
+                    <option value={vendor.ID}>{vendor.Name}</option>
+                  ))}
                 </datalist>
               </div>
               <div className="col-span-6 sm:col-span-3">
@@ -121,31 +183,15 @@ const AddtoStock = () => {
                 <select
                   name="HeadlineAct"
                   id="HeadlineAct"
+                  onChange={(e) => setItemID(e.target.value)}
+                  value={itemID}
                   required
                   className="mt-1.5 w-full rounded-lg bg-gray-200 border-2 h-8 border-gray-300 text-gray-700 sm:text-sm"
                 >
                   <option value="">Please select</option>
-                  <optgroup label="A">
-                    <option value="AK">Albert King</option>
-                  </optgroup>
-
-                  <optgroup label="B">
-                    <option value="BBK">B.B King</option>
-                    <option value="BG">Buddy Guy</option>
-                  </optgroup>
-
-                  <optgroup label="E">
-                    <option value="EC">Eric Clapton</option>
-                  </optgroup>
-
-                  <optgroup label="J">
-                    <option value="JM">John Mayer</option>
-                    <option value="JH">Jimi Hendrix</option>
-                  </optgroup>
-
-                  <optgroup label="S">
-                    <option value="SRV">Stevie Ray Vaughn</option>
-                  </optgroup>
+                  {items.map((item) => (
+                    <option value={item.ID}>{item.Name}</option>
+                  ))}
                 </select>
               </div>
 
@@ -161,31 +207,15 @@ const AddtoStock = () => {
                 <select
                   name="HeadlineAct"
                   id="HeadlineAct"
+                  value={placeID}
+                  onChange={(e) => setPlaceID(e.target.value)}
                   required
                   className="mt-1.5 w-full rounded-lg bg-gray-200 border-2 h-8 border-gray-300 text-gray-700 sm:text-sm"
                 >
                   <option value="">Please select</option>
-                  <optgroup label="A">
-                    <option value="AK">Albert King</option>
-                  </optgroup>
-
-                  <optgroup label="B">
-                    <option value="BBK">B.B King</option>
-                    <option value="BG">Buddy Guy</option>
-                  </optgroup>
-
-                  <optgroup label="E">
-                    <option value="EC">Eric Clapton</option>
-                  </optgroup>
-
-                  <optgroup label="J">
-                    <option value="JM">John Mayer</option>
-                    <option value="JH">Jimi Hendrix</option>
-                  </optgroup>
-
-                  <optgroup label="S">
-                    <option value="SRV">Stevie Ray Vaughn</option>
-                  </optgroup>
+                  {places.map((place) => (
+                    <option value={place.ID}>{place.Name}</option>
+                  ))}
                 </select>
               </div>
 
@@ -202,7 +232,9 @@ const AddtoStock = () => {
                   type="price"
                   id="Password"
                   name="password"
+                  value={unitPrice}
                   className="mt-1 h-8 border-2 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
+                  onChange={(e) => setUnitPrice(parseFloat(e.target.value))}
                   required
                 />
               </div>
@@ -219,19 +251,24 @@ const AddtoStock = () => {
                   type="number"
                   id="PasswordConfirmation"
                   name="password_confirmation"
+                  value={quantity}
                   className="mt-1 h-8 border-2 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
+                  onChange={(e) => setQuantity(e.target.valueAsNumber)}
                   required
                 />
               </div>
 
               <div className="col-span-6 sm:flex sm:items-center sm:gap-4">
-                <button className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500">
+                <button
+                  className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500"
+                  onClick={handleConfirm}
+                >
                   Add to Stock
                 </button>
 
                 <p className="mt-4 text-sm text-gray-500 sm:mt-0">
                   Already added?
-                  <a href="#" className="text-gray-700 underline">
+                  <a href="/UserDashboard" className="text-gray-700 underline">
                     Cancel
                   </a>
                   .
@@ -240,7 +277,9 @@ const AddtoStock = () => {
             </form>
           </div>
         </main>
+        <GoBack label="Back to Home" className="mt-4" />
       </div>
+      <SuccessModel isOpen={isSuccessModelOpen} onClose={handleClose} msg="" />
     </section>
   );
 };

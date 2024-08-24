@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import SelectEmp from "./SelectEmp";
 import ErrorModal from "./ErrorModel";
 import SuccessModel from "./SuccessModel";
+import GoBack from "./Goback";
 import axios from "axios";
 
 const CreateRecord: React.FC = () => {
@@ -211,6 +212,7 @@ const CreateRecord: React.FC = () => {
             </form>
           </div>
         </main>
+        <GoBack label="Back to Home" className="mt-4" />
       </div>
       <SelectEmp isOpen={isSelectEmpOpen} onClose={handleCloseSelectEmp} />
       <ErrorModal

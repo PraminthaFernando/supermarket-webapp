@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import RootNbodyStyle from "./RootNbodyStyle";
+import GoBack from "./Goback";
 import axios from "axios";
 
 const ViewEmployee: React.FC = () => {
@@ -121,6 +122,7 @@ const ViewEmployee: React.FC = () => {
               Cancel
             </button>
           </div>
+          <GoBack label="Back to Home" className="mt-4" />
         </div>
       </div>
     </RootNbodyStyle>

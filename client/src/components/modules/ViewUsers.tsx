@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from "react";
 import RootNbodyStyle from "./RootNbodyStyle";
+import ErrorModal from "./ErrorModel";
+import GoBack from "./Goback";
 import axios from "axios";
 
 const ViewUsers: React.FC = () => {
   const [State, setState] = useState(false);
-  const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [selectedRows] = useState<string[]>([]);
   const [users, setUsers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isErrorModelOpen, setIsErrorModelOpen] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchAllUsers = async () => {
@@ -38,6 +43,28 @@ const ViewUsers: React.FC = () => {
       setState(true);
     }
   };
+
+  const handleRemoveClick = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      selectedRows.forEach(async (user) => {
+        try {
+          const res = await axios.delete("http://localhost:8000/users/delete", {
+            params: { id: user },
+          });
+          if (res.data === "ok") {
+            window.location.reload();
+          } else {
+            setError(res.data);
+            setIsErrorModelOpen(true);
+          }
+        } catch (err) {
+          console.log(err);
+        }
+      });
+      setIsLoading(false);
+    }, 1400);
+  };
   return (
     <RootNbodyStyle>
       <div className="overflow-x-auto flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -53,14 +80,6 @@ const ViewUsers: React.FC = () => {
                   <label htmlFor="SelectAll" className="sr-only">
                     Select All
                   </label>
-
-                  {/* <input
-                    type="checkbox"
-                    id="SelectAll"
-                    // checked={selectedRows.includes("SelectAll")}
-                    onChange={() => handleCheckboxChange("SelectAll")}
-                    className="size-4 rounded border-gray-300"
-                  /> */}
                 </th>
                 <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
                   Name
@@ -117,8 +136,10 @@ const ViewUsers: React.FC = () => {
             <button
               type="button"
               className="rounded bg-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-gray-600"
+              onClick={handleRemoveClick}
+              aria-disabled={isLoading}
             >
-              Remove
+              {isLoading ? "Removing..." : "Remove"}
             </button>
 
             <button
@@ -129,7 +150,13 @@ const ViewUsers: React.FC = () => {
               Cancel
             </button>
           </div>
+          <GoBack className="mt-4" />
         </div>
+        <ErrorModal
+          isOpen={isErrorModelOpen}
+          onClose={() => setIsErrorModelOpen(false)}
+          errorMessage={error}
+        />
       </div>
     </RootNbodyStyle>
   );

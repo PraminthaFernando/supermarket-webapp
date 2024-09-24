@@ -1,5 +1,6 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
+import GoBack from "./Goback";
 
 interface SelectEmpProps {
   isOpen: boolean;
@@ -8,6 +9,7 @@ interface SelectEmpProps {
 
 const SelectEmp: React.FC<SelectEmpProps> = ({ isOpen, onClose }) => {
   const [Employees, setEmployees] = useState<any[]>([]);
+  const [error, setError] = useState("");
   const [des, setDes] = useState("");
 
   useEffect(() => {
@@ -24,7 +26,11 @@ const SelectEmp: React.FC<SelectEmpProps> = ({ isOpen, onClose }) => {
 
   const handleClick = (event: any) => {
     event.preventDefault();
-    onClose(des);
+    if (des === "") {
+      setError("Please select a employee");
+    } else {
+      onClose(des);
+    }
   };
 
   return (
@@ -79,6 +85,17 @@ const SelectEmp: React.FC<SelectEmpProps> = ({ isOpen, onClose }) => {
                       <option value={Employee.Name}>{Employee.Name}</option>
                     ))}
                   </select>
+                  {error && (
+                    <p
+                      style={{
+                        color: "red",
+                        marginTop: "5px",
+                        fontSize: "12.5px",
+                      }}
+                    >
+                      {error}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -99,6 +116,7 @@ const SelectEmp: React.FC<SelectEmpProps> = ({ isOpen, onClose }) => {
               Confirme
             </button>
           </div>
+          <GoBack label="Back to Home" className="mt-4" />
         </div>
       </div>
     </div>

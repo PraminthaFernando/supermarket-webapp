@@ -23,10 +23,12 @@ const ItemBoard: React.FC<itemBoardprops> = ({ isOpen }) => {
 
         <div className="relative p-4 sm:p-6 lg:p-8 w-full">
           <p className="text-sm font-medium uppercase tracking-widest text-pink-500">
-            View
+            සොයන්න
           </p>
 
-          <p className="text-xl font-bold text-white sm:text-2xl">All Items</p>
+          <p className="text-xl font-bold text-white sm:text-2xl">
+            සියලුම අයිතම
+          </p>
         </div>
       </a>
 
@@ -42,10 +44,10 @@ const ItemBoard: React.FC<itemBoardprops> = ({ isOpen }) => {
 
         <div className="relative p-4 sm:p-6 lg:p-8 w-full">
           <p className="text-sm font-medium uppercase tracking-widest text-pink-500">
-            Add
+            එකතු කරන්න
           </p>
 
-          <p className="text-xl font-bold text-white sm:text-2xl">New Item</p>
+          <p className="text-xl font-bold text-white sm:text-2xl">නව අයිතමය</p>
         </div>
       </a>
     </div>

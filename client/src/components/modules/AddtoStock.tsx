@@ -59,7 +59,7 @@ const AddtoStock: React.FC = () => {
         setVendorID(""),
           setPlaceID(""),
           setItemID(""),
-          setUnitPrice(""),
+          setUnitPrice(0),
           setQuantity("");
       }
     } catch (err) {
@@ -232,7 +232,6 @@ const AddtoStock: React.FC = () => {
                   type="price"
                   id="Password"
                   name="password"
-                  value={unitPrice}
                   className="mt-1 h-8 border-2 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
                   onChange={(e) => setUnitPrice(parseFloat(e.target.value))}
                   required

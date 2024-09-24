@@ -10,7 +10,9 @@ const AddEployees: React.FC = () => {
   const [name, setName] = useState("");
   const [ContactNo, setContactNo] = useState("");
   const [Address, setAddress] = useState("");
-  const [Joindate, setJoindate] = useState("");
+  const [Joindate, setJoindate] = useState(
+    new Date().toISOString().slice(0, 10)
+  );
   const [msg, setMsg] = useState("");
   const [emps, setEmps] = useState<any[]>([]);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
@@ -33,7 +35,7 @@ const AddEployees: React.FC = () => {
   }, []);
 
   const handleChange = (event: any) => {
-    const selectedValue = event.target.value.toString();
+    const selectedValue = event.target.value.toUpperCase();
     setId(selectedValue);
 
     // Check if the selected value exists in the array of customer IDs
@@ -66,6 +68,7 @@ const AddEployees: React.FC = () => {
           Name: name,
           Contact: ContactNo,
           Address: Address,
+          date: Joindate,
         });
         setIsSuccessModalOpen(true);
         setMsg(`employee ${name}`);
@@ -252,7 +255,7 @@ const AddEployees: React.FC = () => {
                   <input
                     type="date"
                     id="LastName"
-                    defaultValue={new Date().toISOString().slice(0, 10)}
+                    value={Joindate}
                     name="last_name"
                     className="mt-1 p-1 w-full h-8 border-2 rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm pr-10 cursor-pointer"
                     onChange={(e) => setJoindate(e.target.value)}

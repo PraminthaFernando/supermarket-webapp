@@ -22,23 +22,50 @@ import ViewStock from "components/modules/ViewStock";
 import ViewUsers from "components/modules/ViewUsers";
 import ViewVendors from "components/modules/ViewVendors";
 import ViewPlaces from "components/modules/ViewPlaces";
-import CreateOrder from "components/modules/CreateOrder";
+import AdminLogin from "components/modules/AdminLogin";
 import ViewOrders from "components/modules/ViewOrders";
 import ViewBills from "components/modules/ViewBills";
-import BillBoard from "components/Dashboard/BillBoard";
+// import BillBoard from "components/Dashboard/BillBoard";
 import ViewRecords from "components/modules/ViewRecords";
+import { useEffect } from "react";
 
 function App() {
+  useEffect(() => {
+    let inactivityTimer: NodeJS.Timeout;
+
+    const resetTimer = () => {
+      clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(logOutUser, 3000000); // 1 hour
+    };
+
+    const logOutUser = () => {
+      localStorage.removeItem("token");
+      window.location.href = "/"; // Redirect to login
+    };
+
+    // Set up event listeners
+    window.onload = resetTimer;
+    document.onmousemove = resetTimer;
+    document.onkeydown = resetTimer; // Use onkeydown instead of onkeypress
+
+    return () => {
+      clearTimeout(inactivityTimer); // Clean up on component unmount
+      document.onmousemove = null;
+      document.onkeydown = null; // Clean up event listeners
+    };
+  }, []);
   return (
     <>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Login />}></Route>
+          <Route path="/adminLogin" element={<AdminLogin />}></Route>
           <Route path="/Home" element={<UserDashboard />}></Route>
           <Route path="/UserDashboard" element={<UserDashboard />}></Route>
           <Route path="/CreateRecord" element={<CreateRecord />}></Route>
           <Route path="/AddItem" element={<AddItem />}></Route>
           <Route path="/items" element={<Items />}></Route>
+          <Route path="/:Type/items/:billID" element={<Items />}></Route>
           <Route path="/ViewBills" element={<ViewBills />}></Route>
           <Route path="/CreateBills" element={<CreateBill />}></Route>
           <Route path="/ViewCustomers" element={<ViewCustomers />}></Route>
@@ -59,6 +86,9 @@ function App() {
           <Route path="/ViewRecords" element={<ViewRecords />}></Route>
           <Route path="/ViewStock" element={<ViewStock />}></Route>
           <Route path="/AddStock" element={<AddtoStock />}></Route>
+          <Route path="/ViewUsers" element={<ViewUsers />}></Route>
+          <Route path="/Addusers" element={<Addusers />}></Route>
+          <Route path="/REusers" element={<REusers />}></Route>
         </Routes>
       </BrowserRouter>
     </>

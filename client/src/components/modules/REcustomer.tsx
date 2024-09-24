@@ -1,13 +1,27 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import EditCustomer from "./EditCustomer";
 import ErrorModal from "./ErrorModel";
+import axios from "axios";
 
 const REcustomer: React.FC = () => {
-  const [Customers, setCustomers] = useState(["Sunil", "Ashen", "Yapa"]);
+  const [Customers, setCustomers] = useState<any[]>([]);
   const [Customer, setCustomer] = useState("");
   const [error, setError] = useState("");
   const [isEditCustomerOpen, setIsEditCustomerOpen] = useState(false);
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchAllCustomers = async () => {
+      try {
+        const res = await axios.get("http://localhost:8000/customers");
+        setCustomers(res.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchAllCustomers();
+  }, []);
 
   const handleCloseEditCustomer = () => {
     setIsEditCustomerOpen(false);
@@ -21,6 +35,33 @@ const REcustomer: React.FC = () => {
   const handleEditClick = () => {
     if (Customer != "") {
       setIsEditCustomerOpen(true);
+    } else {
+      setError("Please select a customer");
+      setIsErrorModalOpen(true);
+    }
+  };
+
+  const handleRemoveClick = () => {
+    if (Customer != "") {
+      setIsLoading(true);
+      setTimeout(async () => {
+        try {
+          const res = await axios.delete(
+            "http://localhost:8000/customers/delete",
+            {
+              params: { id: Customer },
+            }
+          );
+          if (res.data === "ok") {
+            window.location.reload();
+          } else {
+            setError(res.data);
+            setIsErrorModalOpen(true);
+          }
+        } catch (err) {
+          console.log(err);
+        }
+      }, 1600);
     } else {
       setError("Please select a customer");
       setIsErrorModalOpen(true);
@@ -62,7 +103,7 @@ const REcustomer: React.FC = () => {
                 >
                   <option value="">select cutomer</option>
                   {Customers.map((Customer) => (
-                    <option value={Customer}>{Customer}</option>
+                    <option value={Customer.ID}>{Customer.Name}</option>
                   ))}
                 </select>
               </div>
@@ -71,8 +112,10 @@ const REcustomer: React.FC = () => {
                 <button
                   type="button"
                   className="rounded bg-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-gray-600"
+                  onClick={handleRemoveClick}
+                  aria-disabled={isLoading}
                 >
-                  Remove
+                  {isLoading ? "Removing..." : "Remove"}
                 </button>
 
                 <button
@@ -84,12 +127,14 @@ const REcustomer: React.FC = () => {
                 </button>
               </div>
             </form>
-            <button
-              type="button"
-              className="block w-fit my-3 rounded-lg bg-blue-600 px-5 py-3 text-sm font-medium text-white"
-            >
-              cancel
-            </button>
+            <div className="flex justify-start my-3">
+              <a
+                href="/UserDashboard"
+                className="block rounded-lg bg-gray-700 px-5 py-3 text-sm text-gray-100 transition hover:bg-gray-600"
+              >
+                cancel
+              </a>
+            </div>
           </div>
         </main>
       </div>

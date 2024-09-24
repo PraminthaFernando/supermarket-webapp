@@ -23,15 +23,17 @@ const OrderBoard: React.FC<orderBoardprops> = ({ isOpen }) => {
 
         <div className="relative p-4 sm:p-6 lg:p-8 w-full">
           <p className="text-sm font-medium uppercase tracking-widest text-pink-500">
-            View
+            සොයන්න
           </p>
 
-          <p className="text-xl font-bold text-white sm:text-2xl">All Orders</p>
+          <p className="text-xl font-bold text-white sm:text-2xl">
+            සියලුම ඇණවුම්
+          </p>
         </div>
       </a>
 
       <a
-        href="/CreateOrder"
+        href="/CreateBills"
         className="group relative block overflow-hidden bg-black rounded-2xl my-2 mx-2 w-full"
       >
         <img
@@ -42,10 +44,10 @@ const OrderBoard: React.FC<orderBoardprops> = ({ isOpen }) => {
 
         <div className="relative p-4 sm:p-6 lg:p-8 w-full">
           <p className="text-sm font-medium uppercase tracking-widest text-pink-500">
-            Create
+            එකතු කරන්න
           </p>
 
-          <p className="text-xl font-bold text-white sm:text-2xl">New Order</p>
+          <p className="text-xl font-bold text-white sm:text-2xl">නව ඇණවුම්</p>
         </div>
       </a>
     </div>

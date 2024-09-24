@@ -2,18 +2,26 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import GoBack from "./Goback";
 import RootNbodyStyle from "./RootNbodyStyle";
+import ErrorModal from "./ErrorModel";
 
 const ViewVendors: React.FC = () => {
   const [State, setState] = useState(false);
-  const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [selectedRows] = useState<string[]>([]);
   const [vendors, setVendors] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isErrorModelOpen, setIsErrorModelOpen] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchAllCategorie = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/vendors");
+        const res = await axios.get("http://localhost:8000/vendors", {
+          withCredentials: true, // This tells Axios to send cookies with the request
+        });
         setVendors(res.data);
       } catch (err) {
+        setError("අනවසර පිවිසුමකි");
+        setIsErrorModelOpen(true);
         console.log(err);
       }
     };
@@ -39,13 +47,38 @@ const ViewVendors: React.FC = () => {
       setState(true);
     }
   };
+
+  const handleRemoveClick = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      selectedRows.forEach(async (user) => {
+        try {
+          const res = await axios.delete(
+            "http://localhost:8000/vendors/delete",
+            {
+              params: { id: user },
+            }
+          );
+          if (res.data === "ok") {
+            window.location.reload();
+          } else {
+            setError(res.data);
+            setIsErrorModelOpen(true);
+          }
+        } catch (err) {
+          console.log(err);
+        }
+      });
+      setIsLoading(false);
+    }, 1400);
+  };
   return (
     <RootNbodyStyle>
       <div className="overflow-x-auto flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
         <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-full sm:w-full">
           <h1 className="mt-6 text-xl font-bold text-gray-900 text-center my-10 sm:text-3xl md:text-4xl">
-            Customers
+            Vendors
           </h1>
           <table className="min-w-fit min-h-full p-5 m-8 rounded-lg divide-y-2 overflow-hidden shadow-xl transform transition-all divide-gray-300 bg-white text-sm items-start">
             <thead className="ltr:text-left rtl:text-right">
@@ -54,14 +87,6 @@ const ViewVendors: React.FC = () => {
                   <label htmlFor="SelectAll" className="sr-only">
                     Select All
                   </label>
-
-                  {/* <input
-                    type="checkbox"
-                    id="SelectAll"
-                    // checked={selectedRows.includes("SelectAll")}
-                    onChange={() => handleCheckboxChange("SelectAll")}
-                    className="size-4 rounded border-gray-300"
-                  /> */}
                 </th>
                 <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
                   Code ID
@@ -124,8 +149,10 @@ const ViewVendors: React.FC = () => {
             <button
               type="button"
               className="rounded bg-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-gray-600"
+              onClick={handleRemoveClick}
+              aria-disabled={isLoading}
             >
-              Remove
+              {isLoading ? "Removing..." : "Remove"}
             </button>
 
             <button
@@ -138,6 +165,11 @@ const ViewVendors: React.FC = () => {
           </div>
           <GoBack label="Back to Home" className="mt-4" />
         </div>
+        <ErrorModal
+          isOpen={isErrorModelOpen}
+          onClose={() => setIsErrorModelOpen(false)}
+          errorMessage={error}
+        />
       </div>
     </RootNbodyStyle>
   );

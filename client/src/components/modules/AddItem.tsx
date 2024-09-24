@@ -30,7 +30,7 @@ function AddItem() {
   }, []);
 
   const handleChange = (event: any) => {
-    const selectedValue = event.target.value.toString();
+    const selectedValue = event.target.value.toUpperCase();
     setId(selectedValue);
 
     // Check if the selected value exists in the array of customer IDs

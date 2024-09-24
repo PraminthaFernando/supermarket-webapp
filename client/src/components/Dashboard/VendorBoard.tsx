@@ -23,11 +23,11 @@ const VendorBoard: React.FC<vendorBoardprops> = ({ isOpen }) => {
 
         <div className="relative p-4 sm:p-6 lg:p-8 w-full">
           <p className="text-sm font-medium uppercase tracking-widest text-pink-500">
-            View
+            සොයන්න
           </p>
 
           <p className="text-xl font-bold text-white sm:text-2xl">
-            All Vendors
+            සියලුම විකුණුම්කරුවන්
           </p>
         </div>
       </a>
@@ -44,10 +44,12 @@ const VendorBoard: React.FC<vendorBoardprops> = ({ isOpen }) => {
 
         <div className="relative p-4 sm:p-6 lg:p-8 w-full">
           <p className="text-sm font-medium uppercase tracking-widest text-pink-500">
-            Create
+            එකතු කරන්න
           </p>
 
-          <p className="text-xl font-bold text-white sm:text-2xl">New Vendor</p>
+          <p className="text-xl font-bold text-white sm:text-2xl">
+            අලුත් වෙළෙන්දෙක්
+          </p>
         </div>
       </a>
 
@@ -63,11 +65,11 @@ const VendorBoard: React.FC<vendorBoardprops> = ({ isOpen }) => {
 
         <div className="relative p-4 sm:p-6 lg:p-8 w-full">
           <p className="text-sm font-medium uppercase tracking-widest text-pink-500">
-            Remove
+            ඉවත් කරන්න
           </p>
 
           <p className="text-xl font-bold text-white sm:text-2xl">
-            Edit Vendor
+            විකුණුම්කරුවෙකු වෙනස් කරන්න
           </p>
         </div>
       </a>

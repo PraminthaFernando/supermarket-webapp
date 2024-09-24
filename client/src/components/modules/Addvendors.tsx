@@ -1,13 +1,121 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "../styleAssets/Addvendors.css";
+import ErrorModal from "./ErrorModel";
+import SuccessModel from "./SuccessModel";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Addvendors: React.FC = () => {
-  const [VendorID, setVendorID] = useState("");
-  const [name, setName] = useState("");
-  const [ContactNo, setContactNo] = useState("");
-  const [Roles, setRoles] = useState(["Famer", "Lorry"]);
-  const [Places, setPlaces] = useState([""]);
-  const [Joindate, setJoindate] = useState("");
+  const [isErrorModelOpen, setIsErrorModelOpen] = useState(false);
+  const [isSuccessModelOpen, setIsSuccessModelOpen] = useState(false);
+  const [validationMessage, setValidationMessage] = useState("");
+  const [id, setId] = useState("");
+  const [msg, setMsg] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [vendors, setVendors] = useState<any[]>([]);
+  const [isValidContact, setIsValidContact] = useState(false);
+  const [Roles] = useState(["Famer", "Lorry"]);
+  const [places, setPlaces] = useState<any[]>([]);
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    ID: "",
+    fullName: "",
+    role: "",
+    place: "",
+    contact: "",
+    joinDate: new Date().toISOString().slice(0, 10),
+  });
+
+  useEffect(() => {
+    const fetchAllPlaces = async () => {
+      try {
+        const res1 = await axios.get("http://localhost:8000/places");
+        setPlaces(res1.data);
+
+        const res2 = await axios.get("http://localhost:8000/vendors");
+        setVendors(res2.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchAllPlaces();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post(
+        "http://localhost:8000/vendor/add",
+        formData
+      );
+      // setIsSuccessModelOpen(true);
+      setErrorMessage(res.data.message);
+      if (errorMessage) {
+        setIsErrorModelOpen(true);
+      } else {
+        setMsg(`vendor ${formData.ID}`);
+        setIsSuccessModelOpen(true);
+      }
+      setMsg(`vendor ${formData.ID}`);
+      setId("");
+      setIsValidContact(false);
+      setFormData({
+        ID: "",
+        fullName: "",
+        role: "",
+        place: "",
+        contact: "",
+        joinDate: new Date().toISOString().slice(0, 10),
+      });
+    } catch (err) {
+      console.log(err);
+      setErrorMessage("An unexpected error occurred.");
+      setIsErrorModelOpen(true);
+    }
+    // console.log("Submitted Data:", formData);
+  };
+
+  const handleContactNoChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const inputValue = event.target.value;
+    handleChange(event);
+
+    if (inputValue.length === 10) {
+      setIsValidContact(true);
+    } else {
+      setIsValidContact(false);
+    }
+  };
+
+  const handleIdChange = (event: any) => {
+    const selectedValue = event.target.value.toUpperCase();
+    setId(selectedValue);
+
+    // Check if the selected value exists in the array of customer IDs
+    const customerIDs = vendors.map((vendor) => vendor.ID);
+
+    if (customerIDs.includes(selectedValue)) {
+      setValidationMessage("This vendor already exists."); // Log validation message if needed
+    } else {
+      setValidationMessage("");
+      handleChange(event); // Set the customer ID if not found
+    }
+  };
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  const handleCancel = () => {
+    navigate("/UserDashboard");
+  };
 
   return (
     <section className="bg-white rounded-2xl">
@@ -36,6 +144,7 @@ const Addvendors: React.FC = () => {
             <form
               action="#"
               className="mt-8 grid grid-cols-6 gap-6 shadow-xl p-3 rounded-xl"
+              onSubmit={handleSubmit}
             >
               <div className="col-span-6">
                 <label
@@ -48,14 +157,20 @@ const Addvendors: React.FC = () => {
 
                 <input
                   type="text"
-                  id="Short"
-                  name="short"
-                  value={VendorID}
+                  id="ID"
+                  name="ID"
+                  value={id}
                   className="mt-1 p-1 h-8 border-2 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
                   placeholder="enter vendor ID"
-                  onChange={(e) => setVendorID(e.target.value)}
+                  onChange={(e) => handleIdChange(e)}
+                  autoFocus
                   required
                 />
+                {validationMessage && (
+                  <p style={{ color: "red", marginTop: "5px" }}>
+                    {validationMessage}
+                  </p>
+                )}
               </div>
 
               <div className="col-span-6">
@@ -69,12 +184,12 @@ const Addvendors: React.FC = () => {
 
                 <input
                   type="text"
-                  id="Full"
-                  name="full"
-                  value={name}
+                  id="fullName"
+                  name="fullName"
+                  value={formData.fullName}
                   className="mt-1 p-1 h-8 border-2 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
                   placeholder="enter vender name"
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => handleChange(e)}
                   required
                 />
               </div>
@@ -89,13 +204,14 @@ const Addvendors: React.FC = () => {
                 </label>
 
                 <select
-                  name="HeadlineAct"
-                  id="HeadlineAct"
+                  name="role"
+                  id="role"
                   required
+                  value={formData.role}
                   className="mt-1.5 w-full rounded-lg bg-gray-200 border-2 h-8 border-gray-300 text-gray-700 sm:text-sm"
-                  autoFocus
+                  onChange={(e) => handleChange(e)}
                 >
-                  <option value="">select place</option>
+                  <option value="">select role</option>
                   {Roles.map((Role) => (
                     <option value={Role}>{Role}</option>
                   ))}
@@ -111,13 +227,15 @@ const Addvendors: React.FC = () => {
                   Place{" "}
                 </label>
                 <select
-                  name="HeadlineAct"
-                  id="HeadlineAct"
+                  name="place"
+                  id="place"
+                  value={formData.place}
                   className="mt-1.5 w-full rounded-lg bg-gray-200 border-2 h-8 border-gray-300 text-gray-700 sm:text-sm"
+                  onChange={(e) => handleChange(e)}
                 >
-                  <option value="">select item</option>
-                  {Places.map((Place) => (
-                    <option value={Place}>{Place}</option>
+                  <option value="">select place</option>
+                  {places.map((place) => (
+                    <option value={place.ID}>{place.Name}</option>
                   ))}
                 </select>
               </div>
@@ -132,14 +250,37 @@ const Addvendors: React.FC = () => {
 
                 <input
                   type="text"
-                  id="4nNo"
-                  name="Phone"
-                  value={ContactNo}
+                  id="contact"
+                  name="contact"
+                  value={formData.contact}
                   className="mt-1 h-8 border-2 p-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
                   placeholder="vendor contact number"
-                  onChange={(e) => setContactNo(e.target.value)}
+                  onChange={(e) => handleContactNoChange(e)}
                   required
                 />
+                {isValidContact ? (
+                  <p
+                    style={{
+                      color: "green",
+                      marginTop: "5px",
+                      fontSize: "12.5px",
+                    }}
+                  >
+                    Valid contact number
+                  </p>
+                ) : formData.contact.length !== 0 ? (
+                  <p
+                    style={{
+                      color: "red",
+                      marginTop: "5px",
+                      fontSize: "12.5px",
+                    }}
+                  >
+                    Invalid contact number
+                  </p>
+                ) : (
+                  <p></p>
+                )}
               </div>
 
               <div className="col-span-6 sm:col-span-3">
@@ -152,12 +293,12 @@ const Addvendors: React.FC = () => {
 
                 <div className="relative">
                   <input
-                    type="date"
-                    id="LastName"
-                    defaultValue={new Date().toISOString().slice(0, 10)}
+                    type="joinDate"
+                    id="joinDate"
+                    defaultValue={formData.joinDate}
                     name="last_name"
                     className="mt-1 p-1 w-full h-8 border-2 rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm pr-10 cursor-pointer"
-                    onChange={(e) => setJoindate(e.target.value)}
+                    onChange={(e) => handleChange(e)}
                   />
                   <span className="absolute inset-y-0 end-0 grid place-content-center px-4">
                     <svg
@@ -179,10 +320,16 @@ const Addvendors: React.FC = () => {
               </div>
 
               <div className="col-span-6 sm:flex sm:items-center sm:gap-4">
-                <button className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500">
+                <button
+                  onClick={handleSubmit}
+                  className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500"
+                >
                   Create an account
                 </button>
-                <button className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500">
+                <button
+                  className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500"
+                  onClick={handleCancel}
+                >
                   Cancel
                 </button>
               </div>
@@ -190,6 +337,16 @@ const Addvendors: React.FC = () => {
           </div>
         </main>
       </div>
+      <SuccessModel
+        isOpen={isSuccessModelOpen}
+        onClose={() => setIsSuccessModelOpen(false)}
+        msg={msg}
+      />
+      <ErrorModal
+        isOpen={isErrorModelOpen}
+        onClose={() => setIsErrorModelOpen(false)}
+        errorMessage={errorMessage}
+      />
     </section>
   );
 };

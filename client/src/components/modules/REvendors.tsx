@@ -1,13 +1,27 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ErrorModal from "./ErrorModel";
 import EditVendor from "./EditVendor";
+import axios from "axios";
 
 const REvendors: React.FC = () => {
-  const [Vendors, setVendors] = useState(["Sunil", "Ashen", "Yapa"]);
+  const [Vendors, setVendors] = useState<any[]>([]);
   const [Vendor, setVendor] = useState("");
   const [error, setError] = useState("");
   const [isEditVendorOpen, setIsEditVendorOpen] = useState(false);
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchAllVendors = async () => {
+      try {
+        const res = await axios.get("http://localhost:8000/vendors");
+        setVendors(res.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchAllVendors();
+  }, []);
 
   const handleCloseEditVendor = () => {
     setIsEditVendorOpen(false);
@@ -23,6 +37,34 @@ const REvendors: React.FC = () => {
       setIsEditVendorOpen(true);
     } else {
       setError("Please select a vendor");
+      setIsErrorModalOpen(true);
+    }
+  };
+
+  const handleRemoveClick = () => {
+    if (Vendor != "") {
+      setIsLoading(true);
+      setTimeout(async () => {
+        try {
+          const res = await axios.delete(
+            "http://localhost:8000/vendors/delete",
+            {
+              params: { id: Vendor },
+            }
+          );
+          if (res.data === "ok") {
+            window.location.reload();
+          } else {
+            setError(res.data);
+            setIsErrorModalOpen(true);
+          }
+        } catch (err) {
+          console.log(err);
+        }
+        setIsLoading(false);
+      }, 1600);
+    } else {
+      setError("Please select a user");
       setIsErrorModalOpen(true);
     }
   };
@@ -62,7 +104,7 @@ const REvendors: React.FC = () => {
                 >
                   <option value="">select a vendor</option>
                   {Vendors.map((Vendor) => (
-                    <option value={Vendor}>{Vendor}</option>
+                    <option value={Vendor.ID}>{Vendor.Name}</option>
                   ))}
                 </select>
               </div>
@@ -71,8 +113,10 @@ const REvendors: React.FC = () => {
                 <button
                   type="button"
                   className="rounded bg-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-gray-600"
+                  onClick={handleRemoveClick}
+                  aria-disabled={isLoading}
                 >
-                  Remove
+                  {isLoading ? "Removing..." : "Remove"}
                 </button>
 
                 <button
@@ -84,12 +128,14 @@ const REvendors: React.FC = () => {
                 </button>
               </div>
             </form>
-            <button
-              type="button"
-              className="block w-fit my-3 rounded-lg bg-blue-600 px-5 py-3 text-sm font-medium text-white"
-            >
-              cancel
-            </button>
+            <div className="flex justify-start my-3">
+              <a
+                href="/UserDashboard"
+                className="block rounded-lg bg-gray-700 px-5 py-3 text-sm text-gray-100 transition hover:bg-gray-600"
+              >
+                cancel
+              </a>
+            </div>
           </div>
         </main>
       </div>

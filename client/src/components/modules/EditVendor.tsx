@@ -1,4 +1,7 @@
-import React, { useState } from "react";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import ErrorModal from "./ErrorModel";
+import SuccessModel from "./SuccessModel";
 
 interface EditVendorProps {
   isOpen: boolean;
@@ -14,13 +17,90 @@ const EditVendor: React.FC<EditVendorProps> = ({
   const [VendorID, setVendorID] = useState("");
   const [name, setName] = useState("");
   const [ContactNo, setContactNo] = useState("");
-  const [Roles, setRoles] = useState(["Famer", "Lorry"]);
-  const [Places, setPlaces] = useState([""]);
-  const [Joindate, setJoindate] = useState("");
+  const [Roles] = useState(["Famer", "Lorry"]);
+  const [Role, setRole] = useState("");
+  const [id, setId] = useState("");
+  const [validationMessage, setValidationMessage] = useState("");
+  const [Places, setPlaces] = useState<any[]>([]);
+  const [vendors, setVendors] = useState<any[]>([]);
+  const [Place, setPlace] = useState("");
+  const [Joindate, setJoindate] = useState(
+    new Date().toISOString().slice(0, 10)
+  );
+  const [isErrorModelOpen, setIsErrorModelOpen] = useState(false);
+  const [isSuccessModelOpen, setIsSuccessModelOpen] = useState(false);
+  const [isValidContact, setIsValidContact] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const handleClick = (event: any) => {
+  useEffect(() => {
+    const fetchAllvendors = async () => {
+      try {
+        const res1 = await axios.get("http://localhost:8000/places");
+        setPlaces(res1.data);
+
+        const res2 = await axios.get("http://localhost:8000/vendors");
+        setVendors(res2.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchAllvendors();
+  }, []);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    onClose();
+    setIsLoading(true);
+    try {
+      await axios.post("http://localhost:8000/vendor/update", {
+        oldId: Vendor_ID,
+        newId: VendorID,
+        Name: name,
+        contact: ContactNo,
+        date: Joindate,
+        role: Role,
+        place: Place,
+      });
+      setMsg("vendor updated");
+      setIsSuccessModelOpen(true);
+      setTimeout(() => {
+        onClose();
+        setIsLoading(false);
+      }, 2000);
+    } catch (err) {
+      console.log(err);
+      setErrorMessage("Something went wrong while updating");
+      setIsErrorModelOpen(true);
+    }
+  };
+
+  const handleIdChange = (event: any) => {
+    const selectedValue = event.target.value.toUpperCase();
+    setId(selectedValue);
+
+    // Check if the selected value exists in the array of customer IDs
+    const customerIDs = vendors.map((vendor) => vendor.ID);
+
+    if (customerIDs.includes(selectedValue)) {
+      setValidationMessage("This vendor already exists."); // Log validation message if needed
+    } else {
+      setValidationMessage("");
+      setVendorID(selectedValue); // Set the customer ID if not found
+    }
+  };
+
+  const handleContactNoChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const inputValue = event.target.value;
+    setContactNo(inputValue);
+
+    if (inputValue.length === 10) {
+      setIsValidContact(true);
+    } else {
+      setIsValidContact(false);
+    }
   };
 
   return (
@@ -59,11 +139,12 @@ const EditVendor: React.FC<EditVendorProps> = ({
 
                   <form
                     action="#"
+                    onSubmit={handleSubmit}
                     className="mt-8 grid grid-cols-6 gap-6 shadow-xl p-3 rounded-xl"
                   >
                     <div className="col-span-6">
                       <label
-                        htmlFor="Email"
+                        htmlFor="Shortname"
                         className="block text-left mx-1 text-sm font-medium text-gray-700"
                       >
                         {" "}
@@ -74,12 +155,16 @@ const EditVendor: React.FC<EditVendorProps> = ({
                         type="text"
                         id="Short"
                         name="short"
-                        value={VendorID}
+                        value={id}
                         className="mt-1 p-1 h-8 border-2 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
                         placeholder="enter vendor ID"
-                        onChange={(e) => setVendorID(e.target.value)}
-                        required
+                        onChange={handleIdChange}
                       />
+                      {validationMessage && (
+                        <p style={{ color: "red", marginTop: "5px" }}>
+                          {validationMessage}
+                        </p>
+                      )}
                     </div>
 
                     <div className="col-span-6">
@@ -99,7 +184,6 @@ const EditVendor: React.FC<EditVendorProps> = ({
                         className="mt-1 p-1 h-8 border-2 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
                         placeholder="enter vender name"
                         onChange={(e) => setName(e.target.value)}
-                        required
                       />
                     </div>
 
@@ -115,11 +199,10 @@ const EditVendor: React.FC<EditVendorProps> = ({
                       <select
                         name="HeadlineAct"
                         id="HeadlineAct"
-                        required
+                        onChange={(e) => setRole(e.target.value)}
                         className="mt-1.5 w-full rounded-lg bg-gray-200 border-2 h-8 border-gray-300 text-gray-700 sm:text-sm"
-                        autoFocus
                       >
-                        <option value="">select place</option>
+                        <option value="">select role</option>
                         {Roles.map((Role) => (
                           <option value={Role}>{Role}</option>
                         ))}
@@ -137,11 +220,12 @@ const EditVendor: React.FC<EditVendorProps> = ({
                       <select
                         name="HeadlineAct"
                         id="HeadlineAct"
+                        onChange={(e) => setPlace(e.target.value)}
                         className="mt-1.5 w-full rounded-lg bg-gray-200 border-2 h-8 border-gray-300 text-gray-700 sm:text-sm"
                       >
-                        <option value="">select item</option>
+                        <option value="">select place</option>
                         {Places.map((Place) => (
-                          <option value={Place}>{Place}</option>
+                          <option value={Place.ID}>{Place.Name}</option>
                         ))}
                       </select>
                     </div>
@@ -161,9 +245,31 @@ const EditVendor: React.FC<EditVendorProps> = ({
                         value={ContactNo}
                         className="mt-1 h-8 border-2 p-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
                         placeholder="vendor contact number"
-                        onChange={(e) => setContactNo(e.target.value)}
-                        required
+                        onChange={handleContactNoChange}
                       />
+                      {isValidContact ? (
+                        <p
+                          style={{
+                            color: "green",
+                            marginTop: "5px",
+                            fontSize: "12.5px",
+                          }}
+                        >
+                          Valid contact number
+                        </p>
+                      ) : ContactNo.length !== 0 ? (
+                        <p
+                          style={{
+                            color: "red",
+                            marginTop: "5px",
+                            fontSize: "12.5px",
+                          }}
+                        >
+                          Invalid contact number
+                        </p>
+                      ) : (
+                        <p></p>
+                      )}
                     </div>
 
                     <div className="col-span-6 sm:col-span-3">
@@ -178,7 +284,7 @@ const EditVendor: React.FC<EditVendorProps> = ({
                         <input
                           type="date"
                           id="LastName"
-                          defaultValue={new Date().toISOString().slice(0, 10)}
+                          value={Joindate}
                           name="last_name"
                           className="mt-1 p-1 w-full h-8 border-2 rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm pr-10 cursor-pointer"
                           onChange={(e) => setJoindate(e.target.value)}
@@ -204,10 +310,11 @@ const EditVendor: React.FC<EditVendorProps> = ({
 
                     <div className="col-span-6 sm:flex sm:items-center sm:gap-4">
                       <button
+                        type="submit"
                         className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500"
-                        onClick={handleClick}
+                        aria-disabled={isLoading}
                       >
-                        Confirm
+                        {isLoading ? "Loading..." : "confirm"}
                       </button>
                     </div>
                   </form>
@@ -226,6 +333,16 @@ const EditVendor: React.FC<EditVendorProps> = ({
           </div>
         </div>
       </div>
+      <ErrorModal
+        isOpen={isErrorModelOpen}
+        onClose={() => setIsErrorModelOpen(false)}
+        errorMessage={errorMessage}
+      />
+      <SuccessModel
+        isOpen={isSuccessModelOpen}
+        onClose={() => setIsSuccessModelOpen(false)}
+        msg={msg}
+      />
     </div>
   );
 };

@@ -1,7 +1,11 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, ipcMain} from 'electron'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
+// import Store from 'electron-store';
+// import Store from "electron-store"
+
+// const store = new Store();
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -61,6 +65,20 @@ app.on('window-all-closed', () => {
   }
 })
 
+// ipcMain.handle('store-set', (_event, key, value) => {
+//   store.set(key, value);
+// });
+
+// ipcMain.handle('store-get', (_event, key) => {
+//   return store.get(key);
+// });
+
+// ipcMain.handle('store-delete', (_event, key) => {
+//   store.delete(key);
+// });
+
+app.whenReady().then(createWindow)
+
 app.on('activate', () => {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
@@ -68,5 +86,3 @@ app.on('activate', () => {
     createWindow()
   }
 })
-
-app.whenReady().then(createWindow)

@@ -6,10 +6,7 @@ interface GoBackProps {
   className?: string;
 }
 
-const GoBack: React.FC<GoBackProps> = ({
-  label = "Go Back",
-  className = "",
-}) => {
+const GoBack: React.FC<GoBackProps> = ({ label = "ආපසු", className = "" }) => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -29,7 +26,7 @@ const GoBack: React.FC<GoBackProps> = ({
       onClick={handleGoBack}
       disabled={isLoading}
     >
-      {isLoading ? "Loading..." : label}
+      {isLoading ? "පූරණය වෙමින්..." : label}
     </button>
   );
 };

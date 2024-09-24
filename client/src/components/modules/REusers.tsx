@@ -1,13 +1,27 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ErrorModal from "./ErrorModel";
 import EditUser from "./EditUser";
+import axios from "axios";
 
 const REusers: React.FC = () => {
-  const [Users, setUsers] = useState(["Sunil", "Ashen", "Yapa"]);
+  const [Users, setUsers] = useState<any[]>([]);
   const [User, setUser] = useState("");
   const [error, setError] = useState("");
   const [isEditUserOpen, setIsEditUserOpen] = useState(false);
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchAllUsers = async () => {
+      try {
+        const res = await axios.get("http://localhost:8000/users");
+        setUsers(res.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchAllUsers();
+  }, []);
 
   const handleCloseEditUser = () => {
     setIsEditUserOpen(false);
@@ -23,6 +37,31 @@ const REusers: React.FC = () => {
       setIsEditUserOpen(true);
     } else {
       setError("Please select user");
+      setIsErrorModalOpen(true);
+    }
+  };
+
+  const handleRemoveClick = () => {
+    if (User != "") {
+      setIsLoading(true);
+      setTimeout(async () => {
+        try {
+          const res = await axios.delete("http://localhost:8000/users/delete", {
+            params: { id: User },
+          });
+          if (res.data === "ok") {
+            window.location.reload();
+          } else {
+            setError(res.data);
+            setIsErrorModalOpen(true);
+          }
+        } catch (err) {
+          console.log(err);
+        }
+        setIsLoading(false);
+      }, 1600);
+    } else {
+      setError("Please select a user");
       setIsErrorModalOpen(true);
     }
   };
@@ -62,7 +101,7 @@ const REusers: React.FC = () => {
                 >
                   <option value="">select user</option>
                   {Users.map((User) => (
-                    <option value={User}>{User}</option>
+                    <option value={User.ID}>{User.Name}</option>
                   ))}
                 </select>
               </div>
@@ -71,8 +110,10 @@ const REusers: React.FC = () => {
                 <button
                   type="button"
                   className="rounded bg-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-gray-600"
+                  onClick={handleRemoveClick}
+                  aria-disabled={isLoading}
                 >
-                  Remove
+                  {isLoading ? "Removing..." : "Remove"}
                 </button>
 
                 <button
@@ -84,12 +125,14 @@ const REusers: React.FC = () => {
                 </button>
               </div>
             </form>
-            <button
-              type="button"
-              className="block w-fit my-3 rounded-lg bg-blue-600 px-5 py-3 text-sm font-medium text-white"
-            >
-              cancel
-            </button>
+            <div className="flex justify-start my-3">
+              <a
+                href="/UserDashboard"
+                className="block rounded-lg bg-gray-700 px-5 py-3 text-sm text-gray-100 transition hover:bg-gray-600"
+              >
+                cancel
+              </a>
+            </div>
           </div>
         </main>
       </div>

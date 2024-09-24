@@ -1,13 +1,27 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import EditEmployee from "./EditEmployee";
 import ErrorModal from "./ErrorModel";
+import axios from "axios";
 
 const REemployee: React.FC = () => {
-  const [Employees, setEmployees] = useState(["Sunil", "Ashen", "Yapa"]);
+  const [Employees, setEmployees] = useState<any[]>([]);
   const [Employee, setEmployee] = useState("");
   const [error, setError] = useState("");
   const [isEditEmpOpen, setIsEditEmpOpen] = useState(false);
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchAllEmps = async () => {
+      try {
+        const res = await axios.get("http://localhost:8000/employees");
+        setEmployees(res.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchAllEmps();
+  }, []);
 
   const handleCloseEditEmp = () => {
     setIsEditEmpOpen(false);
@@ -21,6 +35,34 @@ const REemployee: React.FC = () => {
   const handleEditClick = () => {
     if (Employee != "") {
       setIsEditEmpOpen(true);
+    } else {
+      setError("Please select a employee");
+      setIsErrorModalOpen(true);
+    }
+  };
+
+  const handleRemoveClick = () => {
+    if (Employee != "") {
+      setIsLoading(true);
+      setTimeout(async () => {
+        try {
+          const res = await axios.delete(
+            "http://localhost:8000/employees/delete",
+            {
+              params: { id: Employee },
+            }
+          );
+          if (res.data === "ok") {
+            window.location.reload();
+          } else {
+            setError(res.data);
+            setIsErrorModalOpen(true);
+          }
+        } catch (err) {
+          console.log(err);
+        }
+        setIsLoading(false);
+      }, 1600);
     } else {
       setError("Please select a employee");
       setIsErrorModalOpen(true);
@@ -60,9 +102,9 @@ const REemployee: React.FC = () => {
                   onChange={(e) => setEmployee(e.target.value)}
                   autoFocus
                 >
-                  <option value="">select cutomer</option>
+                  <option value="">select employee</option>
                   {Employees.map((Employee) => (
-                    <option value={Employee}>{Employee}</option>
+                    <option value={Employee.ID}>{Employee.Name}</option>
                   ))}
                 </select>
               </div>
@@ -71,8 +113,10 @@ const REemployee: React.FC = () => {
                 <button
                   type="button"
                   className="rounded bg-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-gray-600"
+                  onClick={handleRemoveClick}
+                  aria-disabled={isLoading}
                 >
-                  Remove
+                  {isLoading ? "Removing..." : "Remove"}
                 </button>
 
                 <button
@@ -84,12 +128,14 @@ const REemployee: React.FC = () => {
                 </button>
               </div>
             </form>
-            <button
-              type="button"
-              className="block w-fit my-3 rounded-lg bg-blue-600 px-5 py-3 text-sm font-medium text-white"
-            >
-              cancel
-            </button>
+            <div className="flex justify-start my-3">
+              <a
+                href="/UserDashboard"
+                className="block rounded-lg bg-gray-700 px-5 py-3 text-sm text-gray-100 transition hover:bg-gray-600"
+              >
+                cancel
+              </a>
+            </div>
           </div>
         </main>
       </div>

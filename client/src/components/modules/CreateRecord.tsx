@@ -1,4 +1,3 @@
-// import { ipcRenderer } from "electron";
 import React, { useEffect, useState } from "react";
 import SelectEmp from "./SelectEmp";
 import ErrorModal from "./ErrorModel";
@@ -13,7 +12,7 @@ const CreateRecord: React.FC = () => {
     Date: new Date().toISOString().slice(0, 10),
     description: "",
   });
-  const Payments = ["Salary", "Stock", "Other"];
+  const Payments = ["Salary", "Other"];
   const [temp, setTemp] = useState("");
   const [isSelectEmpOpen, setIsSelectEmpOpen] = useState(false);
   const [isErrorModelOpen, setIsErrorModelOpen] = useState(false);
@@ -55,7 +54,7 @@ const CreateRecord: React.FC = () => {
     if (data.Payment === "Salary") {
       setState(false);
       setIsSelectEmpOpen(true);
-    } else if (data.Payment === "Stock" || data.Payment === "Other") {
+    } else if (data.Payment === "Other") {
       setState(true);
     } else {
       setState(false);
@@ -120,7 +119,6 @@ const CreateRecord: React.FC = () => {
                   type="number"
                   id="FirstName"
                   name="Price"
-                  // value={data.Price}
                   className="mt-1.5 h-8 border-2 p-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
                   onChange={(e) => handleChange(e)}
                   required
@@ -142,7 +140,6 @@ const CreateRecord: React.FC = () => {
                     value={data.Date}
                     defaultValue={new Date().toISOString().slice(0, 10)} //new Date().toISOString().slice(0, 10)
                     name="last_name"
-                    // onChange={(e) => setDate(e.)}
                     className="mt-1 p-1 w-full h-8 border-2 rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm pr-10 cursor-pointer"
                   />
                   <span className="absolute inset-y-0 end-0 grid place-content-center px-4">
@@ -169,6 +166,29 @@ const CreateRecord: React.FC = () => {
                   className="block text-left mx-1 text-sm font-medium text-gray-700"
                 >
                   Payment notes
+                  {temp && data.description === temp ? (
+                    <p
+                      style={{
+                        color: "green",
+                        marginTop: "5px",
+                        fontSize: "12.5px",
+                      }}
+                    >
+                      notes added
+                    </p>
+                  ) : temp ? (
+                    <p
+                      style={{
+                        color: "red",
+                        marginTop: "5px",
+                        fontSize: "12.5px",
+                      }}
+                    >
+                      Press Add button to add notes
+                    </p>
+                  ) : (
+                    <p></p>
+                  )}
                 </label>
 
                 <div className="overflow-hidden rounded-lg mt-1.5 border border-gray-200 shadow-sm focus-within:border-blue-600 focus-within:ring-1 focus-within:ring-blue-600">
@@ -191,8 +211,12 @@ const CreateRecord: React.FC = () => {
 
                     <button
                       type="button"
+                      name="description"
+                      id="description"
                       className="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
-                      onClick={() => (data.description = temp)}
+                      onClick={() =>
+                        setData((prev) => ({ ...prev, description: temp }))
+                      }
                     >
                       Add
                     </button>
@@ -222,7 +246,7 @@ const CreateRecord: React.FC = () => {
       />
       <SuccessModel
         isOpen={isSuccessModelOpen}
-        msg="Successfully create the record"
+        msg="record"
         onClose={handleCloseSuccessModel}
       />
     </section>

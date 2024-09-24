@@ -1,4 +1,7 @@
+import axios from "axios";
 import React, { useState } from "react";
+import ErrorModal from "./ErrorModel";
+import SuccessModel from "./SuccessModel";
 
 interface EditEmployeeProps {
   isOpen: boolean;
@@ -16,10 +19,35 @@ const EditEmployee: React.FC<EditEmployeeProps> = ({
   const [ContactNo, setContactNo] = useState("");
   const [Address, setAddress] = useState("");
   const [Joindate, setJoindate] = useState("");
+  const [isErrorModelOpen, setIsErrorModelOpen] = useState(false);
+  const [isSuccessModelOpen, setIsSuccessModelOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const handleClick = (event: any) => {
+  const handleClick = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    onClose();
+    setIsLoading(true);
+    try {
+      await axios.post("http://localhost:8000/employee/update", {
+        oldId: Emp_ID,
+        newId: EmpID,
+        Name: name,
+        contact: ContactNo,
+        date: Joindate,
+        address: Address,
+      });
+      setMsg("employee updated");
+      setIsSuccessModelOpen(true);
+      setTimeout(() => {
+        onClose();
+        setIsLoading(false);
+      }, 2000);
+    } catch (err) {
+      console.log(err);
+      setErrorMessage("Something went wrong while updating");
+      setIsErrorModelOpen(true);
+    }
   };
   return (
     <div
@@ -58,6 +86,7 @@ const EditEmployee: React.FC<EditEmployeeProps> = ({
                   <form
                     action="#"
                     className="mt-8 grid grid-cols-6 gap-6 shadow-xl p-3 rounded-xl"
+                    onSubmit={handleClick}
                   >
                     <div className="col-span-6">
                       <label
@@ -76,7 +105,7 @@ const EditEmployee: React.FC<EditEmployeeProps> = ({
                         className="mt-1 p-1 h-8 border-2 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
                         placeholder="enter employee ID"
                         onChange={(e) => setEmpID(e.target.value)}
-                        required
+                        autoFocus
                       />
                     </div>
 
@@ -97,7 +126,6 @@ const EditEmployee: React.FC<EditEmployeeProps> = ({
                         className="mt-1 p-1 h-8 border-2 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
                         placeholder="enter employee name"
                         onChange={(e) => setName(e.target.value)}
-                        required
                       />
                     </div>
 
@@ -118,7 +146,6 @@ const EditEmployee: React.FC<EditEmployeeProps> = ({
                         className="mt-1 p-1 h-8 border-2 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
                         placeholder="enter employee address"
                         onChange={(e) => setAddress(e.target.value)}
-                        required
                       />
                     </div>
 
@@ -138,7 +165,6 @@ const EditEmployee: React.FC<EditEmployeeProps> = ({
                         className="mt-1 h-8 border-2 p-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
                         placeholder="employee contact number"
                         onChange={(e) => setContactNo(e.target.value)}
-                        required
                       />
                     </div>
 
@@ -179,11 +205,12 @@ const EditEmployee: React.FC<EditEmployeeProps> = ({
                     </div>
 
                     <div className="col-span-6 sm:flex sm:items-center sm:gap-4">
-                      <button className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500">
-                        Create an account
-                      </button>
-                      <button className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500">
-                        Cancel
+                      <button
+                        type="submit"
+                        className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500"
+                        aria-disabled={isLoading}
+                      >
+                        {isLoading ? "Loading..." : "confirm"}
                       </button>
                     </div>
                   </form>
@@ -202,6 +229,16 @@ const EditEmployee: React.FC<EditEmployeeProps> = ({
           </div>
         </div>
       </div>
+      <ErrorModal
+        isOpen={isErrorModelOpen}
+        onClose={() => setIsErrorModelOpen(false)}
+        errorMessage={errorMessage}
+      />
+      <SuccessModel
+        isOpen={isSuccessModelOpen}
+        onClose={() => setIsSuccessModelOpen(false)}
+        msg={msg}
+      />
     </div>
   );
 };

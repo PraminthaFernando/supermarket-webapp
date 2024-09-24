@@ -23,10 +23,12 @@ const StockBoard: React.FC<stockBoardprops> = ({ isOpen }) => {
 
         <div className="relative p-4 sm:p-6 lg:p-8 w-full">
           <p className="text-sm font-medium uppercase tracking-widest text-pink-500">
-            Edit
+            වෙනස් කරන්න
           </p>
 
-          <p className="text-xl font-bold text-white sm:text-2xl">View Stock</p>
+          <p className="text-xl font-bold text-white sm:text-2xl">
+            ගබඩා තොරතුරු බලන්න
+          </p>
         </div>
       </a>
 
@@ -42,10 +44,12 @@ const StockBoard: React.FC<stockBoardprops> = ({ isOpen }) => {
 
         <div className="relative p-4 sm:p-6 lg:p-8 w-full">
           <p className="text-sm font-medium uppercase tracking-widest text-pink-500">
-            Add
+            එකතු කරන්න
           </p>
 
-          <p className="text-xl font-bold text-white sm:text-2xl">New Stock</p>
+          <p className="text-xl font-bold text-white sm:text-2xl">
+            නව අයිතම ගබඩා කරන්න
+          </p>
         </div>
       </a>
     </div>

@@ -1,30 +1,166 @@
-import React, { useState } from "react";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import ErrorModal from "./ErrorModel";
 
 interface Item {
   item: string;
   place: string;
+  unitPrice: number;
   quantity: number;
+  id: number;
 }
 
 const Items: React.FC = () => {
-  const [Items, setItems] = useState(["Beens", "Potatoes"]);
-  const [Places, setPlaces] = useState(["Dambulla", "Puttalama"]);
+  const { Type } = useParams();
+  const { billID } = useParams();
+  const [Items, setItems] = useState<any[]>([]);
+  const [Places, setPlaces] = useState<any[]>([]);
   const [rowItem, setRowItem] = useState<string>("");
   const [itemPlace, setItemPlace] = useState<string>("");
   const [amount, setAmount] = useState<number>(0);
+  const [unitPrice, setUnitPrice] = useState<number>(0);
   const [itemList, setItemlist] = useState<Item[]>([]);
+  const [total, setTotal] = useState<number>(0);
+  const [isErrorModelOpen, setIsErrorModelOpen] = useState(false);
+  const [isCancelLoading, setIsCancelLoading] = useState(false);
+  const [isPrintLoading, setIsPrintLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  useEffect(() => {
+    const fetchPlaces = async () => {
+      try {
+        const res = await axios.get("http://localhost:8000/stock/items");
+        setItems(res.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchPlaces();
+  }, []);
+
+  useEffect(() => {
+    const fetchPlaces = async () => {
+      try {
+        const res = await axios.get("http://localhost:8000/stock/places", {
+          params: { Item: rowItem },
+        });
+        setPlaces(res.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchPlaces();
+  }, [rowItem]);
+
+  useEffect(() => {
+    const Total = itemList.reduce((total, currentItem) => {
+      return total + currentItem.unitPrice * currentItem.quantity;
+    }, 0);
+    setTotal(Total);
+  }, [itemList]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (rowItem && itemPlace && amount > 0) {
+    const stockData = await axios.get("http://localhost:8000/stocks/get", {
+      params: { Item: rowItem, Place: itemPlace },
+    });
+    const stock = stockData.data.Quantity;
+    if (stock === 0) {
+      setErrorMessage("තොග නැත");
+      setIsErrorModelOpen(true);
+    } else if (amount > stock) {
+      setErrorMessage("ප්‍රමාණවත් තොගයක් නැත");
+      setIsErrorModelOpen(true);
+    } else if (rowItem && itemPlace && amount > 0) {
+      const res = await axios.put("http://localhost:8000/dealings/add", {
+        billID: billID,
+        item: rowItem,
+        place: itemPlace,
+        unitPrice: unitPrice,
+        quantity: amount,
+      });
+      const Unit_Price = res.data[0].Unit_Price;
+      setUnitPrice(Unit_Price);
       setItemlist([
         ...itemList,
-        { item: rowItem, place: itemPlace, quantity: amount },
+        {
+          item: rowItem,
+          place: itemPlace,
+          unitPrice: Unit_Price,
+          quantity: amount,
+          id: res.data[1],
+        },
       ]);
+      // const totalPrice = total + amount * Unit_Price;
       setRowItem("");
       setItemPlace("");
       setAmount(0);
+      // setTotal(totalPrice);
     }
+  };
+
+  const handlePrintBill = () => {
+    var status = "නොගෙවූ";
+    if (itemList.length === 0) {
+      setErrorMessage("හිස් බිල්පත් සෑදීමේ දෝෂයකි.");
+      setIsErrorModelOpen(true);
+    } else {
+      setIsPrintLoading(true);
+      setTimeout(async () => {
+        if (Type === "bill") {
+          status = "ගෙවා ඇත";
+        }
+        await axios.post("http://localhost:8000/bill/update", {
+          id: billID,
+          status: status,
+          Total: total,
+        });
+        setIsPrintLoading(false);
+        navigate(-1);
+      }, 1000);
+    }
+  };
+
+  const dealingsRemove = async (id: number) => {
+    try {
+      await axios.delete("http://localhost:8000/dealings/delete", {
+        params: { id: id },
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleRemove = async (id: number, index: number) => {
+    const newItems = [...itemList];
+    dealingsRemove(id);
+    newItems.splice(index, 1);
+    setItemlist(newItems);
+  };
+
+  const handleCancel = () => {
+    setIsCancelLoading(true);
+    setTimeout(async () => {
+      if (Type === "order") {
+        await axios.delete("http://localhost:8000/order/remove", {
+          params: { id: billID },
+        });
+        navigate(-1);
+      } else {
+        const res = await axios.delete("http://localhost:8000/bills/delete", {
+          params: { id: billID },
+        });
+        if (res.data === "ok") {
+          navigate(-1);
+        } else {
+          setErrorMessage(res.data);
+          setIsErrorModelOpen(true);
+        }
+      }
+      setIsCancelLoading(false);
+    }, 1000);
   };
 
   return (
@@ -48,7 +184,7 @@ const Items: React.FC = () => {
             </a>
 
             <h1 className="mt-6 text-2xl font-bold text-gray-900 sm:text-3xl md:text-4xl">
-              Bill Items
+              බිල් අයිතම
             </h1>
             <form
               action="#"
@@ -57,11 +193,33 @@ const Items: React.FC = () => {
             >
               <div className="col-span-6 sm:col-span-3">
                 <label
+                  htmlFor="item"
+                  className="block text-left mx-1 text-sm font-medium text-gray-900"
+                >
+                  {" "}
+                  අයිතමය{" "}
+                </label>
+                <select
+                  name="item"
+                  id="item"
+                  className="mt-1.5 w-full rounded-lg bg-gray-200 border-2 h-8 border-gray-300 text-gray-700 sm:text-sm"
+                  onChange={(e) => setRowItem(e.target.value)}
+                  value={rowItem}
+                >
+                  <option value="">අයිතමය තෝරන්න</option>
+                  {Items.map((Item) => (
+                    <option value={Item.Item_ID}>{Item.Item_ID}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="col-span-6 sm:col-span-3">
+                <label
                   htmlFor="place"
                   className="block text-left mx-1 text-sm font-medium text-gray-900"
                 >
                   {" "}
-                  Place{" "}
+                  ආර්ථික මධ්යස්ථානය{" "}
                 </label>
 
                 <select
@@ -73,31 +231,9 @@ const Items: React.FC = () => {
                   value={itemPlace}
                   autoFocus
                 >
-                  <option value="">select place</option>
+                  <option value="">ආර්ථික මධ්යස්ථානය තෝරන්න</option>
                   {Places.map((Place) => (
-                    <option value={Place}>{Place}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="col-span-6 sm:col-span-3">
-                <label
-                  htmlFor="item"
-                  className="block text-left mx-1 text-sm font-medium text-gray-900"
-                >
-                  {" "}
-                  Item{" "}
-                </label>
-                <select
-                  name="item"
-                  id="item"
-                  className="mt-1.5 w-full rounded-lg bg-gray-200 border-2 h-8 border-gray-300 text-gray-700 sm:text-sm"
-                  onChange={(e) => setRowItem(e.target.value)}
-                  value={rowItem}
-                >
-                  <option value="">select item</option>
-                  {Items.map((Item) => (
-                    <option value={Item}>{Item}</option>
+                    <option value={Place.Place_ID}>{Place.Place_ID}</option>
                   ))}
                 </select>
               </div>
@@ -107,7 +243,7 @@ const Items: React.FC = () => {
                   htmlFor="quantity"
                   className="block mx-1 text-left text-sm font-medium text-gray-700"
                 >
-                  Quantity
+                  ප්‍රමාණය
                 </label>
 
                 <input
@@ -121,29 +257,34 @@ const Items: React.FC = () => {
                 />
               </div>
             </form>
+            <span className="flex items-center mt-2">
+              <span className="h-px flex-1 bg-black"></span>
+              <span className="shrink-0 px-6 text-black">බිල්පත් තොරතුරු</span>
+              <span className="h-px flex-1 bg-black"></span>
+            </span>
 
             <div className="overflow-x-auto mt-8 rounded-xl w-full">
               <table className="min-w-full mx-auto divide-y-2 divide-gray-200 bg-white text-sm">
                 <thead className="ltr:text-left rtl:text-right">
                   <tr>
                     <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-                      Item
+                      අයිතමය
                     </th>
                     <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-                      Place
+                      ආර්ථික මධ්යස්ථානය
                     </th>
                     <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-                      Unit Price(1 kg)
+                      ඒකක මිල(1 kg)
                     </th>
                     <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-                      Quantity(kg)
+                      ප්‍රමාණය(kg)
                     </th>
                     <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-                      Total Price
+                      මුළු මිල
                     </th>
                     <th className="whitespace-nowrap pl-4 pr-17 py-2 font-medium text-gray-900">
                       <label htmlFor="SelectAll" className="sr-only">
-                        Remove Item
+                        ඉවත් කරන්න
                       </label>
                     </th>
                   </tr>
@@ -151,7 +292,7 @@ const Items: React.FC = () => {
 
                 <tbody className="divide-y divide-gray-200">
                   {itemList.map((item, index) => (
-                    <tr key={index}>
+                    <tr key={item.id}>
                       <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
                         {item.item}
                       </td>
@@ -159,19 +300,27 @@ const Items: React.FC = () => {
                         {item.place}
                       </td>
                       <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                        200.00
+                        {item.unitPrice}
                       </td>
                       <td className="whitespace-nowrap px-4 py-2 text-gray-700">
                         {item.quantity}
                       </td>
                       <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                        {(item.quantity * 200.0).toFixed(2)}
+                        {(item.quantity * item.unitPrice).toFixed(2)}
                       </td>
                       <td className="whitespace-nowrap pl-3 pr-16 py-2 text-gray-200">
                         <div className="relative inline-block">
-                          <button className="relative text-gray-600 border-gray-200 transition hover:text-red-600 hover:border-gray-400 rounded bg-blue-50 px-2 py-1.5 group">
-                            <span className="absolute z-50 start-full top-1/2 ms-1 -translate-y-full rounded bg-gray-900 px-1 py-0.5 text-xs font-medium text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                              Remove
+                          <button
+                            className="relative text-gray-600 border-gray-200 transition hover:text-red-600 hover:border-gray-400 rounded bg-blue-50 px-2 py-1.5 group"
+                            onClick={() => handleRemove(item.id, index)}
+                          >
+                            <span
+                              style={{
+                                fontSize: "8px",
+                              }}
+                              className="absolute z-50 start-full top-1/2 ms-1 -translate-y-full rounded bg-gray-900 px-1 py-0.5 text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                            >
+                              ඉවත් කිරීම
                             </span>
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -195,9 +344,58 @@ const Items: React.FC = () => {
                 </tbody>
               </table>
             </div>
+            <div className="mt-8 flex justify-end border-t border-gray-100 pt-8">
+              <div className="w-screen max-w-lg space-y-4">
+                <dl className="space-y-0.5 text-sm text-gray-700">
+                  <div className="flex justify-between">
+                    <dt>උප එකතුව</dt>
+                    <dd>RS.{total}</dd>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <dt>වැට් බද්ද</dt>
+                    <dd>RS.0</dd>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <dt>වට්ටම්</dt>
+                    <dd>-RS.0</dd>
+                  </div>
+
+                  <div className="flex justify-between !text-base font-medium">
+                    <dt>එකතුව</dt>
+                    <dd>RS.{total}</dd>
+                  </div>
+                </dl>
+
+                <div className="flex justify-end">
+                  <button
+                    className="block rounded bg-gray-700 px-5 py-3 text-sm text-gray-100 transition hover:bg-gray-600"
+                    onClick={handlePrintBill}
+                    aria-disabled={isPrintLoading || isCancelLoading}
+                  >
+                    {isPrintLoading ? "මුද්‍රණය කරමින්..." : "මුද්‍රණය කරන්න"}
+                  </button>
+                </div>
+              </div>
+            </div>
+            <button
+              className={`bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded hover:bg-black hover:text-white mt-4 ${
+                isCancelLoading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              onClick={handleCancel}
+              disabled={isCancelLoading || isPrintLoading}
+            >
+              {isCancelLoading ? "පූරණය වෙමින්..." : "අවලංගු කරන්න"}
+            </button>
           </div>
         </main>
       </div>
+      <ErrorModal
+        isOpen={isErrorModelOpen}
+        onClose={() => setIsErrorModelOpen(false)}
+        errorMessage={errorMessage}
+      />
     </section>
   );
 };

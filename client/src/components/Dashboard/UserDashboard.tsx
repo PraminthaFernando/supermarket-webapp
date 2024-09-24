@@ -7,6 +7,8 @@ import PlacesBoard from "./PlacesBoard";
 import VendorBoard from "./VendorBoard";
 import RecordBoard from "./RecordBoard";
 import StockBoard from "./StockBoard";
+import UserBoard from "./userBoard";
+import OrderBoard from "./OrderBoard";
 
 interface Link {
   label: string;
@@ -18,52 +20,76 @@ interface Link {
 const UserDashboard: React.FC = () => {
   const links: Link[] = [
     {
-      label: "Billing",
+      label: "",
       href: "#",
       activeFunc: () => setISBIllBoardOpen(true),
       closeFunc: () => setISBIllBoardOpen(false),
     },
     {
-      label: "Stock",
+      label: "බිල්පත්",
+      href: "#",
+      activeFunc: () => setISBIllBoardOpen(true),
+      closeFunc: () => setISBIllBoardOpen(false),
+    },
+    {
+      label: "ඇණවුම්",
+      href: "#",
+      activeFunc: () => setIsOrderBoardOpen(true),
+      closeFunc: () => setIsOrderBoardOpen(false),
+    },
+    {
+      label: "තොග",
       href: "#",
       activeFunc: () => setIsStockBoardOpen(true),
       closeFunc: () => setIsStockBoardOpen(false),
     },
     {
-      label: "Customers",
+      label: "පාරිභෝගිකයන්",
       href: "#",
       activeFunc: () => setIsCustomerBoardOpen(true),
       closeFunc: () => setIsCustomerBoardOpen(false),
     },
     {
-      label: "Employees",
+      label: "සේවකයින්",
       href: "#",
       activeFunc: () => setIsEmployeeBoardOpen(true),
       closeFunc: () => setIsEmployeeBoardOpen(false),
     },
     {
-      label: "Vegitables",
+      label: "එළවළු",
       href: "#",
       activeFunc: () => setIsItemBoardOpen(true),
       closeFunc: () => setIsItemBoardOpen(false),
     },
     {
-      label: "Financial centers",
+      label: "ආර්ථික මධ්යස්ථාන",
       href: "#",
       activeFunc: () => setIsPlaceBoardOpen(true),
       closeFunc: () => setIsPlaceBoardOpen(false),
     },
     {
-      label: "Vendors",
+      label: "වෙළෙන්දෝ",
       href: "#",
       activeFunc: () => setIsVendorBoardOpen(true),
       closeFunc: () => setIsVendorBoardOpen(false),
     },
     {
-      label: "Records",
+      label: "ගණුදෙනු",
       href: "#",
       activeFunc: () => setIsRecordBoardOpen(true),
       closeFunc: () => setIsRecordBoardOpen(false),
+    },
+    {
+      label: "පරිශීලකයන්",
+      href: "#",
+      activeFunc: () => setIsUserBoardOpen(true),
+      closeFunc: () => setIsUserBoardOpen(false),
+    },
+    {
+      label: "මාසික වාර්තා",
+      href: "#",
+      activeFunc: () => setIsReportBoardOpen(true),
+      closeFunc: () => setIsReportBoardOpen(false),
     },
   ];
 
@@ -81,6 +107,9 @@ const UserDashboard: React.FC = () => {
   const [isVendorBoardOpen, setIsVendorBoardOpen] = useState(false);
   const [isRecordBoardOpen, setIsRecordBoardOpen] = useState(false);
   const [isStockBoardOpen, setIsStockBoardOpen] = useState(false);
+  const [isUserBoardOpen, setIsUserBoardOpen] = useState(false);
+  const [isOrderBoardOpen, setIsOrderBoardOpen] = useState(false);
+  const [isReportBoardOpen, setIsReportBoardOpen] = useState(false);
 
   // console.log(linkIndex);
 
@@ -110,7 +139,7 @@ const UserDashboard: React.FC = () => {
     <div className="fixed z-2 inset-0 flex flex-row flex-nowrap text-left">
       {/* Left-side menu */}
       <div className="bg-gray-800 text-white w-64 p-6">
-        <h2 className="text-xl font-bold mb-6">Menu</h2>
+        <h2 className="text-xl font-bold mb-6">මෙනුව</h2>
         <nav>
           {links.map((link, index) => (
             <a
@@ -138,6 +167,8 @@ const UserDashboard: React.FC = () => {
         <VendorBoard isOpen={isVendorBoardOpen} />
         <RecordBoard isOpen={isRecordBoardOpen} />
         <StockBoard isOpen={isStockBoardOpen} />
+        <UserBoard isOpen={isUserBoardOpen} />
+        <OrderBoard isOpen={isOrderBoardOpen}></OrderBoard>
       </div>
     </div>
   );

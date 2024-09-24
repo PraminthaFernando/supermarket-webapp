@@ -1,20 +1,26 @@
 import React, { useEffect, useState } from "react";
 import RootNbodyStyle from "./RootNbodyStyle";
 import EditStock from "./EditStock";
+import ErrorModal from "./ErrorModel";
 import GoBack from "./Goback";
 import axios from "axios";
 
 const ViewStock: React.FC = () => {
   const [stockID, setStockID] = useState("");
   const [State, setState] = useState(false);
-  const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [selectedRows] = useState<string[]>([]);
   const [isEditStockOpen, setIsEditStockOpen] = useState(false);
+  const [isErrorModelOpen, setIsErrorModelOpen] = useState(false);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [stocks, setStocks] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchStock = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/stock");
+        const res = await axios.get("http://localhost:8000/stock", {
+          withCredentials: true, // This tells Axios to send cookies with the request
+        });
         setStocks(res.data);
       } catch (err) {
         console.log(err);
@@ -55,6 +61,28 @@ const ViewStock: React.FC = () => {
       setIsEditStockOpen(true);
     }
   };
+
+  const handleRemoveClick = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      selectedRows.forEach(async (record) => {
+        try {
+          const res = await axios.delete("http://localhost:8000/stock/delete", {
+            params: { id: record },
+          });
+          if (res.data === "ok") {
+            window.location.reload();
+          } else {
+            setError(res.data);
+            setIsErrorModelOpen(true);
+          }
+        } catch (err) {
+          console.log(err);
+        }
+      });
+      setIsLoading(false);
+    }, 1400);
+  };
   return (
     <RootNbodyStyle>
       <div className="overflow-x-auto flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -63,6 +91,43 @@ const ViewStock: React.FC = () => {
           <h1 className="mt-6 text-xl font-bold text-gray-900 text-center my-10 sm:text-3xl md:text-4xl">
             Stock
           </h1>
+          <div className="relative text-center w-1/2 mx-auto bg-white">
+            <label htmlFor="Search" className="sr-only">
+              {" "}
+              Search{" "}
+            </label>
+
+            <input
+              type="text"
+              id="Search"
+              placeholder="Search for..."
+              className="w-full px-2 rounded-2xl bg-white border-gray-200 border-2 py-2.5 pe-10 shadow-sm sm:text-sm"
+            />
+
+            <span className="absolute inset-y-0 end-0 grid w-10 place-content-center">
+              <button
+                type="button"
+                className="text-gray-600 hover:text-gray-700"
+              >
+                <span className="sr-only">Search</span>
+
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                  stroke="currentColor"
+                  className="size-4"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                  />
+                </svg>
+              </button>
+            </span>
+          </div>
           <table className="min-w-fit min-h-full p-5 m-8 rounded-lg divide-y-2 overflow-hidden shadow-xl transform transition-all divide-gray-300 bg-white text-sm items-start">
             <thead className="ltr:text-left rtl:text-right">
               <tr>
@@ -70,14 +135,6 @@ const ViewStock: React.FC = () => {
                   <label htmlFor="SelectAll" className="sr-only">
                     Select All
                   </label>
-
-                  {/* <input
-                    type="checkbox"
-                    id="SelectAll"
-                    // checked={selectedRows.includes("SelectAll")}
-                    onChange={() => handleCheckboxChange("SelectAll")}
-                    className="size-4 rounded border-gray-300"
-                  /> */}
                 </th>
                 <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
                   Item
@@ -94,13 +151,13 @@ const ViewStock: React.FC = () => {
                 <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
                   Vendor
                 </th>
-                <th className="px-8 py-4"></th>
+                <th className="px-6 py-2"></th>
               </tr>
             </thead>
 
             <tbody className="divide-y divide-gray-200">
               {stocks.map((stock) => (
-                <tr>
+                <tr key={stock.ID}>
                   <td className="px-4 py-2">
                     <label className="sr-only" htmlFor="Row1">
                       Row 1
@@ -110,12 +167,11 @@ const ViewStock: React.FC = () => {
                       className="size-4 rounded border-gray-300 bg-white"
                       type="checkbox"
                       id={stock.ID}
-                      // checked={selectedRows.includes("Row1")}
-                      onChange={() => handleCheckboxChange("Row1")}
+                      onChange={() => handleCheckboxChange(stock.ID)}
                     />
                   </td>
                   <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-                    {stock.item_ID}
+                    {stock.Item_ID}
                   </td>
                   <td className="whitespace-nowrap px-4 py-2 text-gray-700">
                     {stock.Place_ID}
@@ -129,9 +185,9 @@ const ViewStock: React.FC = () => {
                   <td className="whitespace-nowrap px-4 py-2 text-gray-700">
                     {stock.Vendor_ID}
                   </td>
-                  <td className="whitespace-nowrap px-8 py-3">
+                  <td className="whitespace-nowrap px-6 py-2">
                     <button
-                      className="inline-block rounded bg-indigo-600 px-8 py-3 text-xs font-medium text-white hover:bg-indigo-700"
+                      className="inline-block rounded bg-indigo-600 px-6 py-2 text-xs font-medium text-white hover:bg-indigo-700"
                       onClick={() => handleEditClick(stock.ID)}
                     >
                       Edit
@@ -149,8 +205,10 @@ const ViewStock: React.FC = () => {
             <button
               type="button"
               className="rounded bg-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-gray-600"
+              onClick={handleRemoveClick}
+              aria-disabled={isLoading}
             >
-              Remove
+              {isLoading ? "Removing..." : "Remove"}
             </button>
 
             <button
@@ -167,6 +225,11 @@ const ViewStock: React.FC = () => {
           isOpen={isEditStockOpen}
           onClose={handleClose}
           stock_ID={stockID}
+        />
+        <ErrorModal
+          isOpen={isErrorModelOpen}
+          onClose={() => setIsErrorModelOpen(false)}
+          errorMessage={error}
         />
       </div>
     </RootNbodyStyle>

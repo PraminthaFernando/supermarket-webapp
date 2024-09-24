@@ -1,15 +1,48 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "../styleAssets/login.css";
 import { useNavigate } from "react-router-dom";
 import ErrorModal from "./ErrorModel";
+// import electron from "vite-plugin-electron";
+// import { ipcRenderer } from "electron";
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  // const [errorMessage, setErrorMessage] = useState('');
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isRefreshError, setIsRefreshError] = useState(false);
+
+  const validateRefreshToken = async () => {
+    const response = await fetch(
+      "http://localhost:8000/validate-refresh-token",
+      {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    console.log(response);
+
+    return response.ok; // Return true if valid, false if not
+  };
+
+  useEffect(() => {
+    const checkTokenValidity = async () => {
+      const isValid = await validateRefreshToken();
+
+      if (!isValid) {
+        setIsRefreshError(true);
+        setError("ඇතුල්වීම කල් ඉකුත් වී ඇත. කරුණාකර පරිපාලනය අමතන්න");
+        setIsErrorModalOpen(true);
+      }
+    };
+
+    checkTokenValidity();
+  }, [navigate]);
 
   const handleUN = (data: string) => {
     setUsername(data);
@@ -22,34 +55,34 @@ const Login: React.FC = () => {
 
   const handleCloseErrorModal = () => {
     setIsErrorModalOpen(false);
+    if (isRefreshError) {
+      window.location.href = "/adminLogin";
+    }
   };
 
-  // const handleClick = () => {
-  //   if (username === "" && password === "") {
-  //     return;
-  //   } else {
-  //     handleSubmit();
-  //   }
-  // };
+  const handleLogin = () => {
+    setIsLoading(true);
+    setTimeout(async () => {
+      const response = await fetch("http://localhost:8000/login", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      });
 
-  const handleSubmit = async () => {
-    if (username === "B80") {
-      if (password === "1234") {
-        sessionStorage.setItem("idex", "0");
-        navigate("/UserDashboard");
+      if (response.ok) {
+        const data = await response.json();
+        navigate("/UserDashboard"); // Use context to log in
       } else {
-        setPassword("");
-        navigate("/");
-        setError("Incorrect Password");
+        const error = await response.text();
+        console.log(error);
+        setError("ඇතුළු වීම අසාර්ථක විය");
         setIsErrorModalOpen(true);
       }
-    } else {
-      setUsername("");
-      setPassword("");
-      navigate("/");
-      setError("Incorrect username or password");
-      setIsErrorModalOpen(true);
-    }
+      setIsLoading(false);
+    }, 1400);
   };
 
   return (
@@ -152,9 +185,10 @@ const Login: React.FC = () => {
           <button
             type="submit"
             className="block w-full my-3 rounded-lg bg-indigo-600 px-5 py-3 text-sm font-medium text-white"
-            onClick={handleSubmit}
+            onClick={handleLogin}
+            aria-disabled={isLoading}
           >
-            Sign in
+            {isLoading ? "Loading..." : "Sign in"}
           </button>
 
           <p className="text-center text-sm text-gray-500">

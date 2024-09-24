@@ -1,6 +1,101 @@
-import React from "react";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import ErrorModal from "./ErrorModel";
+import SuccessModel from "./SuccessModel";
 
 const Addusers: React.FC = () => {
+  const [isErrorModelOpen, setIsErrorModelOpen] = useState(false);
+  const [isSuccessModelOpen, setIsSuccessModelOpen] = useState(false);
+  const [isValidContact, setIsValidContact] = useState(false);
+  const [validationMessage, setValidationMessage] = useState("");
+  const [id, setId] = useState("");
+  const [users, setUsers] = useState<any[]>([]);
+  const [formData, setFormData] = useState({
+    username: "",
+    Name: "",
+    address: "",
+    joinDate: new Date().toISOString().slice(0, 10),
+    password: "",
+    confirmPassword: "",
+    contact: "",
+  });
+
+  useEffect(() => {
+    const fetchAllUsers = async () => {
+      try {
+        const res = await axios.get("http://localhost:8000/users");
+        setUsers(res.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchAllUsers();
+  }, []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (formData.password === formData.confirmPassword) {
+      try {
+        await axios.put("http://localhost:8000/user/add", formData);
+        setIsSuccessModelOpen(true);
+      } catch (err) {
+        console.log(err);
+      }
+    } else {
+      setIsErrorModelOpen(true);
+    }
+    setFormData({
+      username: "",
+      Name: "",
+      address: "",
+      joinDate: new Date().toISOString().slice(0, 10),
+      password: "",
+      confirmPassword: "",
+      contact: "",
+    });
+    console.log("Submitted Data:", formData);
+  };
+
+  const handleContactNoChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const inputValue = event.target.value;
+    handleChange(event);
+
+    if (inputValue.length === 10) {
+      setIsValidContact(true);
+    } else {
+      setIsValidContact(false);
+    }
+  };
+
+  const handleUserChange = (event: any) => {
+    const selectedValue = event.target.value;
+    setId(selectedValue);
+
+    // Check if the selected value exists in the array of customer IDs
+    const customerIDs = users.map((user) => user.username);
+
+    if (customerIDs.includes(selectedValue)) {
+      setValidationMessage("පරිශීලක නාමය දැනටමත් ගෙන ඇත"); // Log validation message if needed
+    } else {
+      setValidationMessage("");
+      handleChange(event); // Set the customer ID if not found
+    }
+  };
+
+  // const handleClose = () => {
+  //   setIsErrorModelOpen(false)
+  // }
+
   return (
     <section className="bg-white rounded-2xl">
       <div className="lg:grid">
@@ -28,38 +123,55 @@ const Addusers: React.FC = () => {
             <form
               action="#"
               className="mt-8 grid grid-cols-6 gap-6 shadow-xl p-3 rounded-xl"
+              onSubmit={handleSubmit}
             >
               <div className="col-span-6 sm:col-span-3">
                 <label
-                  htmlFor="FirstName"
+                  htmlFor="username"
                   className="block mx-1 text-left text-sm font-medium text-gray-700"
                 >
-                  First Name
+                  පරිශීලක නාමය
                 </label>
 
                 <input
                   type="text"
-                  id="FirstName"
-                  name="first_name"
+                  id="username"
+                  name="username"
+                  value={id}
                   className="mt-1 h-8 border-2 p-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
+                  onChange={(e) => handleUserChange(e)}
+                  placeholder="පරිශීලක නාමයක් ඇතුළත් කරන්න"
                   autoFocus
                   required
                 />
+                {validationMessage && (
+                  <p
+                    style={{
+                      color: "red",
+                      marginTop: "5px",
+                      fontSize: "12.5px",
+                    }}
+                  >
+                    {validationMessage}
+                  </p>
+                )}
               </div>
 
               <div className="col-span-6 sm:col-span-3">
                 <label
-                  htmlFor="LastName"
+                  htmlFor="Name"
                   className="block text-left mx-1 text-sm font-medium text-gray-700"
                 >
-                  Last Name
+                  නම
                 </label>
 
                 <input
                   type="text"
-                  id="LastName"
-                  name="last_name"
+                  id="Name"
+                  name="Name"
+                  placeholder="පරිශීලකයාගේ නම ඇතුලත් කරන්න"
                   className="mt-1 p-1 w-full h-8 border-2 rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
+                  onChange={handleChange}
                   required
                 />
               </div>
@@ -75,9 +187,10 @@ const Addusers: React.FC = () => {
 
                 <input
                   type="text"
-                  id="Email"
-                  name="email"
+                  id="address"
+                  name="address"
                   className="mt-1 p-1 h-8 border-2 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
+                  onChange={handleChange}
                   required
                 />
               </div>
@@ -92,11 +205,35 @@ const Addusers: React.FC = () => {
 
                 <input
                   type="text"
-                  id="FirstName"
-                  name="first_name"
+                  id="contact"
+                  name="contact"
                   className="mt-1 h-8 border-2 p-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
+                  onChange={handleContactNoChange}
                   required
                 />
+                {isValidContact ? (
+                  <p
+                    style={{
+                      color: "green",
+                      marginTop: "5px",
+                      fontSize: "12.5px",
+                    }}
+                  >
+                    Valid contact number
+                  </p>
+                ) : formData.contact.length !== 0 ? (
+                  <p
+                    style={{
+                      color: "red",
+                      marginTop: "5px",
+                      fontSize: "12.5px",
+                    }}
+                  >
+                    Invalid contact number
+                  </p>
+                ) : (
+                  <p></p>
+                )}
               </div>
 
               <div className="col-span-6 sm:col-span-3">
@@ -110,10 +247,11 @@ const Addusers: React.FC = () => {
                 <div className="relative">
                   <input
                     type="date"
-                    id="LastName"
-                    defaultValue={new Date().toISOString().slice(0, 10)}
-                    name="last_name"
+                    id="joinDate"
+                    name="joinDate"
+                    defaultValue={formData.joinDate}
                     className="mt-1 p-1 w-full h-8 border-2 rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm pr-10 cursor-pointer"
+                    onChange={handleChange}
                   />
                   <span className="absolute inset-y-0 end-0 grid place-content-center px-4">
                     <svg
@@ -148,6 +286,7 @@ const Addusers: React.FC = () => {
                   id="Password"
                   name="password"
                   className="mt-1 h-8 border-2 p-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
+                  onChange={handleChange}
                   required
                 />
               </div>
@@ -162,9 +301,10 @@ const Addusers: React.FC = () => {
 
                 <input
                   type="password"
-                  id="PasswordConfirmation"
-                  name="password_confirmation"
+                  id="confirmPassword"
+                  name="confirmPassword"
                   className="mt-1 p-1 h-8 border-2 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
+                  onChange={handleChange}
                   required
                 />
               </div>
@@ -186,14 +326,17 @@ const Addusers: React.FC = () => {
               </div>
 
               <div className="col-span-6 sm:flex sm:items-center sm:gap-4">
-                <button className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500">
+                <button
+                  type="submit"
+                  className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500"
+                >
                   Create an account
                 </button>
 
                 <p className="mt-4 text-sm text-gray-500 sm:mt-0">
                   Already have an account?
-                  <a href="#" className="text-gray-700 underline">
-                    Log in
+                  <a href="/UserDashboard" className="text-gray-700 underline">
+                    Cancel
                   </a>
                   .
                 </p>
@@ -202,6 +345,16 @@ const Addusers: React.FC = () => {
           </div>
         </main>
       </div>
+      <ErrorModal
+        isOpen={isErrorModelOpen}
+        onClose={() => setIsErrorModelOpen(false)}
+        errorMessage="Password mismatch error"
+      />
+      <SuccessModel
+        isOpen={isSuccessModelOpen}
+        onClose={() => setIsSuccessModelOpen(false)}
+        msg={formData.Name}
+      />
     </section>
   );
 };

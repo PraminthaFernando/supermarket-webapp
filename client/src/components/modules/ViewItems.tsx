@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from "react";
 import RootNbodyStyle from "./RootNbodyStyle";
 import GoBack from "./Goback";
+import ErrorModal from "./ErrorModel";
 import axios from "axios";
 
 const ViewItems: React.FC = () => {
   const [State, setState] = useState(false);
-  const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [selectedRows] = useState<string[]>([]);
   const [items, setItems] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isErrorModelOpen, setIsErrorModelOpen] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchAllitems = async () => {
@@ -38,6 +42,28 @@ const ViewItems: React.FC = () => {
     } else {
       setState(true);
     }
+  };
+
+  const handleRemoveClick = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      selectedRows.forEach(async (item) => {
+        try {
+          const res = await axios.delete("http://localhost:8000/items/delete", {
+            params: { id: item },
+          });
+          if (res.data === "ok") {
+            window.location.reload();
+          } else {
+            setError(res.data);
+            setIsErrorModelOpen(true);
+          }
+        } catch (err) {
+          console.log(err);
+        }
+      });
+      setIsLoading(false);
+    }, 1400);
   };
   return (
     <RootNbodyStyle>
@@ -98,8 +124,10 @@ const ViewItems: React.FC = () => {
             <button
               type="button"
               className="rounded bg-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-gray-600"
+              onClick={handleRemoveClick}
+              aria-disabled={isLoading}
             >
-              Remove
+              {isLoading ? "Removing..." : "Remove"}
             </button>
 
             <button
@@ -112,6 +140,11 @@ const ViewItems: React.FC = () => {
           </div>
           <GoBack label="Back to Home" className="mt-4" />
         </div>
+        <ErrorModal
+          isOpen={isErrorModelOpen}
+          onClose={() => setIsErrorModelOpen(false)}
+          errorMessage={error}
+        />
       </div>
     </RootNbodyStyle>
   );

@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from "react";
 import RootNbodyStyle from "./RootNbodyStyle";
 import GoBack from "./Goback";
+import ErrorModal from "./ErrorModel";
 import axios from "axios";
 
 const ViewEmployee: React.FC = () => {
   const [State, setState] = useState(false);
-  const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [selectedRows] = useState<string[]>([]);
   const [emps, setEmps] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isErrorModelOpen, setIsErrorModelOpen] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchAllEmps = async () => {
@@ -38,6 +42,31 @@ const ViewEmployee: React.FC = () => {
     } else {
       setState(true);
     }
+  };
+
+  const handleRemoveClick = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      selectedRows.forEach(async (employee) => {
+        try {
+          const res = await axios.delete(
+            "http://localhost:8000/employees/delete",
+            {
+              params: { id: employee },
+            }
+          );
+          if (res.data === "ok") {
+            window.location.reload();
+          } else {
+            setError(res.data);
+            setIsErrorModelOpen(true);
+          }
+        } catch (err) {
+          console.log(err);
+        }
+      });
+      setIsLoading(false);
+    }, 1400);
   };
   return (
     <RootNbodyStyle>
@@ -110,8 +139,10 @@ const ViewEmployee: React.FC = () => {
             <button
               type="button"
               className="rounded bg-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-gray-600"
+              onClick={handleRemoveClick}
+              aria-disabled={isLoading}
             >
-              Remove
+              {isLoading ? "Removing..." : "Remove"}
             </button>
 
             <button
@@ -124,6 +155,11 @@ const ViewEmployee: React.FC = () => {
           </div>
           <GoBack label="Back to Home" className="mt-4" />
         </div>
+        <ErrorModal
+          isOpen={isErrorModelOpen}
+          onClose={() => setIsErrorModelOpen(false)}
+          errorMessage={error}
+        />
       </div>
     </RootNbodyStyle>
   );

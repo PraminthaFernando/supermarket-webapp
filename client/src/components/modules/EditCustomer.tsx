@@ -1,4 +1,7 @@
+import axios from "axios";
 import React, { useState } from "react";
+import ErrorModal from "./ErrorModel";
+import SuccessModel from "./SuccessModel";
 
 interface EditCustomerProps {
   isOpen: boolean;
@@ -12,13 +15,43 @@ const EditCustomer: React.FC<EditCustomerProps> = ({
   Customer_ID,
 }) => {
   const [CustomerID, setCustomerID] = useState("");
+  const [isErrorModelOpen, setIsErrorModelOpen] = useState(false);
+  const [isSuccessModelOpen, setIsSuccessModelOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const [name, setName] = useState("");
   const [ContactNo, setContactNo] = useState("");
   const [Joindate, setJoindate] = useState("");
 
-  const handleClick = (event: any) => {
+  const handleClick = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    onClose();
+    setIsLoading(true);
+    try {
+      const res = await axios.post("http://localhost:8000/customer/update", {
+        oldId: Customer_ID,
+        newId: CustomerID,
+        Name: name,
+        contact: ContactNo,
+        date: Joindate,
+      });
+      if (res.data === "ok") {
+        setMsg("customer updated");
+        setIsSuccessModelOpen(true);
+        setTimeout(() => {
+          onClose();
+          setIsLoading(false);
+        }, 2000);
+      } else {
+        setErrorMessage(res.data);
+        setIsErrorModelOpen(true);
+        setIsLoading(false);
+      }
+    } catch (err) {
+      console.log(err);
+      setErrorMessage("Something went wrong while updating");
+      setIsErrorModelOpen(true);
+    }
   };
 
   return (
@@ -76,7 +109,7 @@ const EditCustomer: React.FC<EditCustomerProps> = ({
                         value={CustomerID}
                         className="mt-1 p-1 h-8 border-2 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
                         onChange={(e) => setCustomerID(e.target.value)}
-                        required
+                        autoFocus
                       />
                     </div>
 
@@ -96,7 +129,6 @@ const EditCustomer: React.FC<EditCustomerProps> = ({
                         value={name}
                         className="mt-1 p-1 h-8 border-2 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
                         onChange={(e) => setName(e.target.value)}
-                        required
                       />
                     </div>
 
@@ -115,7 +147,6 @@ const EditCustomer: React.FC<EditCustomerProps> = ({
                         value={ContactNo}
                         className="mt-1 h-8 border-2 p-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
                         onChange={(e) => setContactNo(e.target.value)}
-                        required
                       />
                     </div>
 
@@ -159,8 +190,9 @@ const EditCustomer: React.FC<EditCustomerProps> = ({
                       <button
                         type="submit"
                         className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500"
+                        aria-disabled={isLoading}
                       >
-                        Confirm
+                        {isLoading ? "Loading..." : "confirm"}
                       </button>
                     </div>
                   </form>
@@ -179,6 +211,16 @@ const EditCustomer: React.FC<EditCustomerProps> = ({
           </div>
         </div>
       </div>
+      <ErrorModal
+        isOpen={isErrorModelOpen}
+        onClose={() => setIsErrorModelOpen(false)}
+        errorMessage={errorMessage}
+      />
+      <SuccessModel
+        isOpen={isSuccessModelOpen}
+        onClose={() => setIsSuccessModelOpen(false)}
+        msg={msg}
+      />
     </div>
   );
 };

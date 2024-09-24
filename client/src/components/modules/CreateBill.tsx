@@ -1,28 +1,62 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import CreateOrder from "./CreateOrder";
 import GoBack from "./Goback";
+import axios from "axios";
 
 const CreateBill: React.FC = () => {
   const navigate = useNavigate();
-  const [isOrderOpen, setIsOrderOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [customerID, setCustomerID] = useState<null | string>(null);
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
 
-  const handleCloseOrder = () => {
-    setIsOrderOpen(false);
-    // window.location.reload();
-  };
+  useEffect(() => {
+    const fetchAllCustomers = async () => {
+      try {
+        const res = await axios.get("http://localhost:8000/customers");
+        setCustomers(res.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchAllCustomers();
+  }, []);
 
-  const handleCreateOrder = () => {
+  const billCreate = async (name: string) => {
     setIsLoading(true);
+    const res = await axios.put("http://localhost:8000/bill/create", {
+      customerID: customerID,
+      date: date,
+    });
+    const b_id = res.data;
+    if (name == "order") {
+      const res = await axios.put("http://localhost:8000/order/create", {
+        bill: b_id,
+        date: date,
+      });
+      console.log(res.data);
+    }
     setTimeout(() => {
-      setIsOrderOpen(true);
+      navigate(`/${name}/items/${b_id}`);
       setIsLoading(false);
     }, 1000);
   };
 
+  const handleCreateOrder = () => {
+    billCreate("order");
+  };
+
   const handleCreateBill = () => {
-    navigate("/items");
+    billCreate("bill");
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const ID = e.target.value;
+    const idSet = customers.map((customer) => customer.ID);
+    if (idSet.includes(ID)) {
+      setCustomerID(ID);
+    }
   };
 
   return (
@@ -46,7 +80,7 @@ const CreateBill: React.FC = () => {
             </a>
 
             <h1 className="mt-6 text-2xl font-bold text-gray-900 sm:text-3xl md:text-4xl">
-              Create Bill
+              බිල්පත සාදන්න
             </h1>
 
             <form
@@ -58,7 +92,7 @@ const CreateBill: React.FC = () => {
                   htmlFor="FirstName"
                   className="block mx-1 text-left text-sm font-medium text-gray-700"
                 >
-                  Customer
+                  පාරිභෝගිකයා
                 </label>
 
                 <div className="relative mt-1">
@@ -67,7 +101,8 @@ const CreateBill: React.FC = () => {
                     list="HeadlineActArtist"
                     id="HeadlineAct"
                     className="w-full p-1 h-8 border-2 bg-white rounded-lg border-gray-300 pe-10 text-gray-700 sm:text-sm [&::-webkit-calendar-picker-indicator]:opacity-0"
-                    placeholder="Please select"
+                    placeholder="කරුණාකර තෝරා ගන්න"
+                    onChange={(e) => handleChange(e)}
                   />
 
                   <span className="absolute inset-y-0 end-0 flex w-8 items-center">
@@ -89,13 +124,9 @@ const CreateBill: React.FC = () => {
                 </div>
 
                 <datalist content="HeadlineAct" id="HeadlineActArtist">
-                  <option value="JM">John Mayer</option>
-                  <option value="SRV">Stevie Ray Vaughn</option>
-                  <option value="JH">Jimi Hendrix</option>
-                  <option value="BBK">B.B King</option>
-                  <option value="AK">Albert King</option>
-                  <option value="BG">Buddy Guy</option>
-                  <option value="EC">Eric Clapton</option>
+                  {customers.map((customer) => (
+                    <option value={customer.ID}>{customer.Name}</option>
+                  ))}
                 </datalist>
               </div>
 
@@ -104,16 +135,17 @@ const CreateBill: React.FC = () => {
                   htmlFor="LastName"
                   className="block text-left mx-1 text-sm font-medium text-gray-700"
                 >
-                  Date
+                  දිනය
                 </label>
 
                 <div className="relative">
                   <input
                     type="date"
                     id="LastName"
-                    defaultValue={new Date().toISOString().slice(0, 10)}
+                    value={date}
                     name="last_name"
                     className="mt-1 p-1 w-full h-8 border-2 rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm pr-10 cursor-pointer"
+                    onChange={(e) => setDate(e.target.value)}
                   />
                   <span className="absolute inset-y-0 end-0 grid place-content-center px-2">
                     <svg
@@ -137,15 +169,16 @@ const CreateBill: React.FC = () => {
                 <button
                   className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500"
                   onClick={handleCreateBill}
+                  disabled={isLoading}
                 >
-                  Create bill
+                  {isLoading ? "පූරණය වෙමින්..." : "බිල්පත සාදන්න"}
                 </button>
                 <button
                   className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-10 ml-5 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500"
                   onClick={handleCreateOrder}
                   disabled={isLoading}
                 >
-                  {isLoading ? "Loading..." : "Create order"}
+                  {isLoading ? "පූරණය වෙමින්..." : "ඇණවුම සාදන්න"}
                 </button>
               </div>
             </form>
@@ -153,11 +186,6 @@ const CreateBill: React.FC = () => {
           </div>
         </main>
       </div>
-      <CreateOrder
-        isOpen={isOrderOpen}
-        onClose={handleCloseOrder}
-        initialItemList={[]}
-      />
     </section>
   );
 };

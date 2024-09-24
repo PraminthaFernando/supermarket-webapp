@@ -1,12 +1,17 @@
 import React, { useEffect, useState } from "react";
 import RootNbodyStyle from "./RootNbodyStyle";
 import GoBack from "./Goback";
+import ErrorModal from "./ErrorModel";
+import { format } from "date-fns";
 import axios from "axios";
 
 const ViewCustomers: React.FC = () => {
   const [State, setState] = useState(false);
-  const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [selectedRows] = useState<string[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isErrorModelOpen, setIsErrorModelOpen] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchAllCustomers = async () => {
@@ -39,6 +44,32 @@ const ViewCustomers: React.FC = () => {
       setState(true);
     }
   };
+
+  const handleRemoveClick = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      selectedRows.forEach(async (Customer) => {
+        try {
+          const res = await axios.delete(
+            "http://localhost:8000/customers/delete",
+            {
+              params: { id: Customer },
+            }
+          );
+          if (res.data === "ok") {
+            window.location.reload();
+          } else {
+            setError(res.data);
+            setIsErrorModelOpen(true);
+          }
+        } catch (err) {
+          console.log(err);
+        }
+      });
+      setIsLoading(false);
+    }, 1400);
+  };
+
   return (
     <RootNbodyStyle>
       <div className="overflow-x-auto flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -101,7 +132,7 @@ const ViewCustomers: React.FC = () => {
                     {customer.Contact_No}
                   </td>
                   <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                    {customer.Join_Date}
+                    {format(new Date(customer.Join_Date), "yyyy-MM-dd")}
                   </td>
                   <td className="whitespace-nowrap px-4 py-2 text-gray-700">
                     {customer.Paid_Bill_Count}
@@ -121,8 +152,10 @@ const ViewCustomers: React.FC = () => {
             <button
               type="button"
               className="rounded bg-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-gray-600"
+              onClick={handleRemoveClick}
+              aria-disabled={isLoading}
             >
-              Remove
+              {isLoading ? "Removing..." : "Remove"}
             </button>
 
             <button
@@ -133,8 +166,16 @@ const ViewCustomers: React.FC = () => {
               Cancel
             </button>
           </div>
-          <GoBack label="Back to Home" className="mt-4" />
+          <GoBack
+            label="Back to Home"
+            className="flex items-center justify-center mt-4"
+          />
         </div>
+        <ErrorModal
+          isOpen={isErrorModelOpen}
+          onClose={() => setIsErrorModelOpen(false)}
+          errorMessage={error}
+        />
       </div>
     </RootNbodyStyle>
   );

@@ -1,4 +1,7 @@
+import axios from "axios";
 import React, { useState } from "react";
+import ErrorModal from "./ErrorModel";
+import SuccessModel from "./SuccessModel";
 
 interface EditUserProps {
   isOpen: boolean;
@@ -7,15 +10,67 @@ interface EditUserProps {
 }
 
 const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, User_ID }) => {
-  const [Fname, setFName] = useState("");
-  const [Lname, setLName] = useState("");
-  const [ContactNo, setContactNo] = useState("");
-  const [Address, setAddress] = useState("");
-  const [Joindate, setJoindate] = useState("");
+  const [isErrorModelOpen, setIsErrorModelOpen] = useState(false);
+  const [isSuccessModelOpen, setIsSuccessModelOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isValidContact, setIsValidContact] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    address: "",
+    joinDate: new Date().toISOString().slice(0, 10),
+    password: "",
+    confirmPassword: "",
+    contact: "",
+  });
 
-  const handleClick = (event: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  const handleClick = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    onClose();
+    setIsLoading(true);
+    try {
+      const res = await axios.post("http://localhost:8000/user/update", {
+        new: formData,
+        oldId: User_ID,
+      });
+      if (res.data === "ok") {
+        setMsg("user updated");
+        setIsSuccessModelOpen(true);
+        setTimeout(() => {
+          onClose();
+          setIsLoading(false);
+        }, 2000);
+      } else {
+        setErrorMessage(res.data);
+        setIsErrorModelOpen(true);
+      }
+    } catch (err) {
+      console.log(err);
+      setErrorMessage("Something went wrong while updating");
+      setIsErrorModelOpen(true);
+    }
+  };
+
+  const handleContactNoChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const inputValue = event.target.value;
+    handleChange(event);
+
+    if (inputValue.length === 10) {
+      setIsValidContact(true);
+    } else {
+      setIsValidContact(false);
+    }
   };
   return (
     <div
@@ -53,6 +108,7 @@ const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, User_ID }) => {
 
                   <form
                     action="#"
+                    onSubmit={handleClick}
                     className="mt-8 grid grid-cols-6 gap-6 shadow-xl p-3 rounded-xl"
                   >
                     <div className="col-span-6 sm:col-span-3">
@@ -65,14 +121,13 @@ const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, User_ID }) => {
 
                       <input
                         type="text"
-                        id="FirstName"
-                        name="first_name"
-                        value={Fname}
+                        id="firstName"
+                        name="firstName"
+                        value={formData.firstName}
                         className="mt-1 h-8 border-2 p-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
                         placeholder="enter user first name"
-                        onChange={(e) => setFName(e.target.value)}
+                        onChange={handleChange}
                         autoFocus
-                        required
                       />
                     </div>
 
@@ -86,13 +141,12 @@ const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, User_ID }) => {
 
                       <input
                         type="text"
-                        id="LastName"
-                        name="last_name"
-                        value={Lname}
+                        id="lastName"
+                        name="lastName"
+                        value={formData.lastName}
                         className="mt-1 p-1 w-full h-8 border-2 rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
                         placeholder="enter user last name"
-                        onChange={(e) => setLName(e.target.value)}
-                        required
+                        onChange={handleChange}
                       />
                     </div>
 
@@ -107,13 +161,12 @@ const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, User_ID }) => {
 
                       <input
                         type="text"
-                        id="Email"
-                        name="email"
-                        value={Address}
+                        id="address"
+                        name="address"
+                        value={formData.address}
                         className="mt-1 p-1 h-8 border-2 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
                         placeholder="enter user address"
-                        onChange={(e) => setAddress(e.target.value)}
-                        required
+                        onChange={handleChange}
                       />
                     </div>
 
@@ -127,14 +180,36 @@ const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, User_ID }) => {
 
                       <input
                         type="text"
-                        id="FirstName"
-                        name="first_name"
-                        value={ContactNo}
+                        id="contact"
+                        name="contact"
+                        value={formData.contact}
                         className="mt-1 h-8 border-2 p-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
                         placeholder="user contact number"
-                        onChange={(e) => setContactNo(e.target.value)}
-                        required
+                        onChange={handleContactNoChange}
                       />
+                      {isValidContact ? (
+                        <p
+                          style={{
+                            color: "green",
+                            marginTop: "5px",
+                            fontSize: "12.5px",
+                          }}
+                        >
+                          Valid contact number
+                        </p>
+                      ) : formData.contact.length !== 0 ? (
+                        <p
+                          style={{
+                            color: "red",
+                            marginTop: "5px",
+                            fontSize: "12.5px",
+                          }}
+                        >
+                          Invalid contact number
+                        </p>
+                      ) : (
+                        <p></p>
+                      )}
                     </div>
 
                     <div className="col-span-6 sm:col-span-3">
@@ -148,11 +223,11 @@ const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, User_ID }) => {
                       <div className="relative">
                         <input
                           type="date"
-                          id="LastName"
-                          defaultValue={new Date().toISOString().slice(0, 10)}
-                          name="last_name"
+                          id="joinDate"
+                          name="joinDate"
+                          value={formData.joinDate}
                           className="mt-1 p-1 w-full h-8 border-2 rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm pr-10 cursor-pointer"
-                          onChange={(e) => setJoindate(e.target.value)}
+                          onChange={handleChange}
                         />
                         <span className="absolute inset-y-0 end-0 grid place-content-center px-4">
                           <svg
@@ -188,7 +263,7 @@ const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, User_ID }) => {
                         name="password"
                         className="mt-1 h-8 border-2 p-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
                         placeholder="enter a password"
-                        required
+                        onChange={handleChange}
                       />
                     </div>
 
@@ -202,19 +277,20 @@ const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, User_ID }) => {
 
                       <input
                         type="password"
-                        id="PasswordConfirmation"
-                        name="password_confirmation"
+                        id="confirmPassword"
+                        name="confirmPassword"
                         className="mt-1 p-1 h-8 border-2 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
                         placeholder="confirm your password"
-                        required
+                        onChange={handleChange}
                       />
                     </div>
                     <div className="col-span-6 sm:flex sm:items-center sm:gap-4">
                       <button
+                        type="submit"
                         className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500"
-                        onClick={handleClick}
+                        aria-disabled={isLoading}
                       >
-                        Confirm
+                        {isLoading ? "Loading..." : "confirm"}
                       </button>
                     </div>
                   </form>
@@ -233,6 +309,16 @@ const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, User_ID }) => {
           </div>
         </div>
       </div>
+      <ErrorModal
+        isOpen={isErrorModelOpen}
+        onClose={() => setIsErrorModelOpen(false)}
+        errorMessage={errorMessage}
+      />
+      <SuccessModel
+        isOpen={isSuccessModelOpen}
+        onClose={() => setIsSuccessModelOpen(false)}
+        msg={msg}
+      />
     </div>
   );
 };

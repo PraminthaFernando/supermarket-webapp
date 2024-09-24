@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from "react";
 import RootNbodyStyle from "./RootNbodyStyle";
+import ErrorModal from "./ErrorModel";
 import axios from "axios";
 
 const ViewPlaces: React.FC = () => {
   const [State, setState] = useState(false);
-  const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [selectedRows] = useState<string[]>([]);
   const [places, setPlaces] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isErrorModelOpen, setIsErrorModelOpen] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchAllplaces = async () => {
@@ -37,6 +41,31 @@ const ViewPlaces: React.FC = () => {
     } else {
       setState(true);
     }
+  };
+
+  const handleRemoveClick = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      selectedRows.forEach(async (place) => {
+        try {
+          const res = await axios.delete(
+            "http://localhost:8000/places/delete",
+            {
+              params: { id: place },
+            }
+          );
+          if (res.data === "ok") {
+            window.location.reload();
+          } else {
+            setError(res.data);
+            setIsErrorModelOpen(true);
+          }
+        } catch (err) {
+          console.log(err);
+        }
+      });
+      setIsLoading(false);
+    }, 1400);
   };
   return (
     <RootNbodyStyle>
@@ -75,7 +104,6 @@ const ViewPlaces: React.FC = () => {
                       className="size-4 rounded border-gray-300 bg-white"
                       type="checkbox"
                       id={place.ID}
-                      // checked={selectedRows.includes("Row1")}
                       onChange={() => handleCheckboxChange(place.ID)}
                     />
                   </td>
@@ -97,8 +125,10 @@ const ViewPlaces: React.FC = () => {
             <button
               type="button"
               className="rounded bg-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-gray-600"
+              onClick={handleRemoveClick}
+              aria-disabled={isLoading}
             >
-              Remove
+              {isLoading ? "Removing..." : "Remove"}
             </button>
 
             <button
@@ -110,6 +140,11 @@ const ViewPlaces: React.FC = () => {
             </button>
           </div>
         </div>
+        <ErrorModal
+          isOpen={isErrorModelOpen}
+          onClose={() => setIsErrorModelOpen(false)}
+          errorMessage={error}
+        />
       </div>
     </RootNbodyStyle>
   );

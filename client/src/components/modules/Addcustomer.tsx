@@ -17,6 +17,7 @@ const Addcustomer: React.FC = () => {
   const [isErrorModelOpen, setIsErrorModelOpen] = useState(false);
   const [isSuccessModelOpen, setIsSuccessModelOpen] = useState(false);
   const [validContact, setValidContact] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
 
@@ -41,14 +42,14 @@ const Addcustomer: React.FC = () => {
   };
 
   const handleChange = (event: any) => {
-    const selectedValue = event.target.value.toString();
+    const selectedValue = event.target.value.toUpperCase();
     setId(selectedValue);
 
     // Check if the selected value exists in the array of customer IDs
     const customerIDs = customers.map((customer) => customer.ID);
 
     if (customerIDs.includes(selectedValue)) {
-      setValidationMessage("This customer ID already exists."); // Log validation message if needed
+      setValidationMessage("මෙම පාරිභෝගිකයා දැනටමත් සිටී."); // Log validation message if needed
     } else {
       setValidationMessage("");
       setCustomerID(selectedValue); // Set the customer ID if not found
@@ -57,11 +58,12 @@ const Addcustomer: React.FC = () => {
 
   const handleConfirm = async (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
+    setIsLoading(true);
     if (validationMessage) {
-      setErrorMessage("Invalid customer ID");
+      setErrorMessage("වලංගු නොවන පාරිභෝගිකයෙකි");
       setIsErrorModelOpen(true);
     } else if (!validContact) {
-      setErrorMessage("Invalid contact number");
+      setErrorMessage("වලංගු නොවන දුරකථන අංකයකි");
       setIsErrorModelOpen(true);
     } else {
       try {
@@ -82,6 +84,7 @@ const Addcustomer: React.FC = () => {
       } catch (err) {
         console.log(err);
       }
+      setIsLoading(false);
     }
   };
 
@@ -123,7 +126,7 @@ const Addcustomer: React.FC = () => {
             </a>
 
             <h1 className="mt-6 text-2xl font-bold text-gray-900 sm:text-3xl md:text-4xl">
-              Add Customer
+              පාරිභෝගිකයෙකු එක් කරන්න
             </h1>
 
             <form
@@ -136,7 +139,7 @@ const Addcustomer: React.FC = () => {
                   className="block text-left mx-1 text-sm font-medium text-gray-700"
                 >
                   {" "}
-                  Customer Short name{" "}
+                  පාරිභෝගික කෙටි නම{" "}
                 </label>
 
                 <input
@@ -145,7 +148,7 @@ const Addcustomer: React.FC = () => {
                   name="short"
                   value={id}
                   className="mt-1 p-1 h-8 border-2 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
-                  placeholder="enter customer ID"
+                  placeholder="පාරිභෝගික හැඳුනුම්පත ඇතුළත් කරන්න"
                   onChange={(e) => handleChange(e)}
                   autoFocus
                   required
@@ -163,7 +166,7 @@ const Addcustomer: React.FC = () => {
                   className="block text-left mx-1 text-sm font-medium text-gray-700"
                 >
                   {" "}
-                  Customer Full name{" "}
+                  පාරිභෝගිකයාගේ නම{" "}
                 </label>
 
                 <input
@@ -172,7 +175,7 @@ const Addcustomer: React.FC = () => {
                   name="full"
                   value={name}
                   className="mt-1 p-1 h-8 border-2 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
-                  placeholder="enter customer name"
+                  placeholder="පාරිභෝගිකයාගේ නම ඇතුලත් කරන්න"
                   onChange={(e) => setName(e.target.value)}
                   required
                 />
@@ -183,7 +186,7 @@ const Addcustomer: React.FC = () => {
                   htmlFor="FirstName"
                   className="block mx-1 text-left text-sm font-medium text-gray-700"
                 >
-                  Contact number
+                  දුරකථන අංකය
                 </label>
 
                 <input
@@ -192,7 +195,7 @@ const Addcustomer: React.FC = () => {
                   name="Phone"
                   value={ContactNo}
                   className="mt-1 h-8 border-2 p-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
-                  placeholder="customer contact number"
+                  placeholder="පාරිභෝගික දුරකථන අංකය"
                   onChange={(e) => handleContactNoChange(e)}
                   required
                 />
@@ -204,7 +207,7 @@ const Addcustomer: React.FC = () => {
                       fontSize: "12.5px",
                     }}
                   >
-                    Valid contact number
+                    වලංගු දුරකථන අංකයකි
                   </p>
                 ) : ContactNo.length !== 0 ? (
                   <p
@@ -214,7 +217,7 @@ const Addcustomer: React.FC = () => {
                       fontSize: "12.5px",
                     }}
                   >
-                    Invalid contact number
+                    වලංගු නොවන දුරකථන අංකයකි
                   </p>
                 ) : (
                   <p></p>
@@ -226,7 +229,7 @@ const Addcustomer: React.FC = () => {
                   htmlFor="LastName"
                   className="block text-left mx-1 text-sm font-medium text-gray-700"
                 >
-                  Join date
+                  සම්බන්ධ වූ දිනය
                 </label>
 
                 <div className="relative">
@@ -261,14 +264,16 @@ const Addcustomer: React.FC = () => {
                 <button
                   className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500"
                   onClick={handleConfirm}
+                  aria-disabled={isLoading}
                 >
-                  Create an account
+                  {isLoading ? "පූරණය වෙමින්..." : "ගිණුමක් තනන්න"}
                 </button>
                 <button
                   className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500"
                   onClick={handleCancel}
+                  aria-disabled={isLoading}
                 >
-                  Cancel
+                  {isLoading ? "පූරණය වෙමින්..." : "අවලංගු කරන්න"}
                 </button>
               </div>
             </form>
@@ -283,7 +288,7 @@ const Addcustomer: React.FC = () => {
       <SuccessModel
         isOpen={isSuccessModelOpen}
         onClose={handleClose}
-        msg="customer"
+        msg="පාරිභෝගිකයා"
       />
     </section>
   );

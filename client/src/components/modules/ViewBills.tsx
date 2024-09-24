@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
 import OrderItems from "./OrderItems";
 import GoBack from "./Goback";
+import ErrorModal from "./ErrorModel";
 import axios from "axios";
 
 const ViewBills: React.FC = () => {
   const [BillID, setBillID] = useState("");
   const [isOrderItemsOpen, setIsOrderItemsOpen] = useState(false);
+  const [isErrorModelOpen, setIsErrorModelOpen] = useState(false);
+  const [error, setError] = useState("");
   const [bills, setBills] = useState<any[]>([]);
 
   useEffect(() => {
@@ -14,6 +17,8 @@ const ViewBills: React.FC = () => {
         const res = await axios.get("http://localhost:8000/bills");
         setBills(res.data);
       } catch (err) {
+        setError("අනවසර පිවිසුමකි");
+        setIsErrorModelOpen(true);
         console.log(err);
       }
     };
@@ -94,6 +99,12 @@ const ViewBills: React.FC = () => {
         isOpen={isOrderItemsOpen}
         onClose={handleCloseOrderItems}
         Bill_ID={BillID}
+        view="bill"
+      />
+      <ErrorModal
+        isOpen={isErrorModelOpen}
+        onClose={() => setIsErrorModelOpen(false)}
+        errorMessage={error}
       />
     </div>
   );

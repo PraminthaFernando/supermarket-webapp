@@ -1,4 +1,7 @@
 import React, { useState } from "react";
+import ErrorModal from "./ErrorModel";
+import SuccessModel from "./SuccessModel";
+import axios from "axios";
 
 interface editRecordProps {
   isOpen: boolean;
@@ -12,11 +15,38 @@ const EditRecord: React.FC<editRecordProps> = ({
   Record_ID,
 }) => {
   const [payment, setPayment] = useState("");
-  const [Payments, setPayments] = useState(["Salary", "Stock", "Other"]);
+  const [description, setDescription] = useState("");
+  const [temp, setTemp] = useState("");
+  const [Payments] = useState(["Salary", "Other"]);
+  const [price, setPrice] = useState<number | "">();
+  const [isErrorModelOpen, setIsErrorModelOpen] = useState(false);
+  const [isSuccessModelOpen, setIsSuccessModelOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const handleClick = (event: any) => {
+  const handleClick = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    onClose();
+    setIsLoading(true);
+    try {
+      await axios.post("http://localhost:8000/record/update", {
+        id: Record_ID,
+        payment: payment,
+        price: price,
+        description: description,
+      });
+      setMsg("record updated");
+      setIsSuccessModelOpen(true);
+      setTimeout(() => {
+        onClose();
+        setIsLoading(false);
+      }, 2000);
+    } catch (err) {
+      console.log(err);
+      setIsLoading(false);
+      setErrorMessage("Something went wrong while updating");
+      setIsErrorModelOpen(true);
+    }
   };
 
   return (
@@ -55,7 +85,7 @@ const EditRecord: React.FC<editRecordProps> = ({
 
                   <form
                     action="#"
-                    className="mt-8 grid grid-cols-6 gap-6 shadow-xl p-3 rounded-xl w-full"
+                    className="mt-8 grid grid-cols-6 gap-6 shadow-xl p-3 rounded-xl"
                     onSubmit={handleClick}
                   >
                     <div className="col-span-6">
@@ -70,8 +100,7 @@ const EditRecord: React.FC<editRecordProps> = ({
                       <select
                         name="HeadlineAct"
                         id="HeadlineAct"
-                        required
-                        className="mt-1.5 w-full rounded-lg bg-gray-200 border-2 h-8 border-gray-300 text-gray-700 sm:text-sm"
+                        className="mt-1 p-1 h-8 border-2 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
                         onChange={(e) => setPayment(e.target.value)}
                         autoFocus
                       >
@@ -82,12 +111,91 @@ const EditRecord: React.FC<editRecordProps> = ({
                       </select>
                     </div>
 
+                    <div className="col-span-6 sm:col-span-3">
+                      <label
+                        htmlFor="Password"
+                        className="block text-left text-sm font-medium text-gray-700"
+                      >
+                        {" "}
+                        Total price{" "}
+                      </label>
+
+                      <input
+                        type="price"
+                        id="Password"
+                        name="password"
+                        className="mt-1 h-8 border-2 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
+                        onChange={(e) => setPrice(parseFloat(e.target.value))}
+                      />
+                    </div>
+
+                    <div className="col-span-6 block">
+                      <label
+                        htmlFor="OrderNotes"
+                        className="block text-left mx-1 text-sm font-medium text-gray-700"
+                      >
+                        Payment notes
+                        {temp && description === temp ? (
+                          <p
+                            style={{
+                              color: "green",
+                              marginTop: "5px",
+                              fontSize: "12.5px",
+                            }}
+                          >
+                            notes added
+                          </p>
+                        ) : temp ? (
+                          <p
+                            style={{
+                              color: "red",
+                              marginTop: "5px",
+                              fontSize: "12.5px",
+                            }}
+                          >
+                            Press Add button to add notes
+                          </p>
+                        ) : (
+                          <p></p>
+                        )}
+                      </label>
+
+                      <div className="overflow-hidden rounded-lg mt-1.5 border border-gray-200 shadow-sm focus-within:border-blue-600 focus-within:ring-1 focus-within:ring-blue-600">
+                        <textarea
+                          id="OrderNotes"
+                          name="description"
+                          className="w-full resize-none bg-white text-black p-1 border-none align-top focus:ring-0 sm:text-sm"
+                          rows={4}
+                          placeholder="Enter any additional payment notes..."
+                          onChange={(e) => setTemp(e.target.value)}
+                        ></textarea>
+
+                        <div className="flex items-center justify-end gap-2 bg-white p-3">
+                          <button
+                            type="button"
+                            className="rounded bg-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-gray-600"
+                          >
+                            Clear
+                          </button>
+
+                          <button
+                            type="button"
+                            className="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
+                            onClick={() => setDescription(temp)}
+                          >
+                            Add
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="col-span-6 sm:flex sm:items-center sm:gap-4">
                       <button
                         type="submit"
                         className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500"
+                        aria-disabled={isLoading}
                       >
-                        Confirm
+                        {isLoading ? "Loading..." : "confirm"}
                       </button>
                     </div>
                   </form>
@@ -106,6 +214,16 @@ const EditRecord: React.FC<editRecordProps> = ({
           </div>
         </div>
       </div>
+      <ErrorModal
+        isOpen={isErrorModelOpen}
+        onClose={() => setIsErrorModelOpen(false)}
+        errorMessage={errorMessage}
+      />
+      <SuccessModel
+        isOpen={isSuccessModelOpen}
+        onClose={() => setIsSuccessModelOpen(false)}
+        msg={msg}
+      />
     </div>
   );
 };

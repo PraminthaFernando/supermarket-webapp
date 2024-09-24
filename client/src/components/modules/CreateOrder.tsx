@@ -1,41 +1,152 @@
-import React, { useState } from "react";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import ErrorModal from "./ErrorModel";
 
 interface Item {
   item: string;
   place: string;
   quantity: number;
+  unitPrice: number;
+  id: number;
 }
 
 interface CreateOrderProps {
   initialItemList: Item[];
+  billId: number;
   isOpen: boolean;
   onClose: () => void;
 }
 
 const CreateOrder: React.FC<CreateOrderProps> = ({
   initialItemList,
+  billId,
   isOpen,
   onClose,
 }) => {
-  const [items, setItems] = useState<string[]>(["Beens", "Potatoes"]);
-  const [places, setPlaces] = useState<string[]>(["Dambulla", "Puttalama"]);
+  const [items, setItems] = useState<any[]>([]);
+  const [places, setPlaces] = useState<any[]>([]);
   const [rowItem, setRowItem] = useState<string>("");
   const [itemPlace, setItemPlace] = useState<string>("");
+  const [status, setStatus] = useState<string>("");
   const [amount, setAmount] = useState<number>(0);
-  const [itemList, setItemlist] = useState<Item[]>(initialItemList);
-  const [closeDate, setCloseDate] = useState<Date | null>(null);
+  const [itemList, setItemlist] = useState<Item[]>([]);
+  const [closeDate, setCloseDate] = useState(
+    new Date().toISOString().slice(0, 10)
+  );
+  const [isErrorModelOpen, setIsErrorModelOpen] = useState(false);
+  const [isCancelLoading, setIsCancelLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [unitPrice, setUnitPrice] = useState<number>(0);
+  const [total, setTotal] = useState<number>(0);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  useEffect(() => {
+    setItemlist(initialItemList);
+  }, [initialItemList]);
+
+  useEffect(() => {
+    const fetchPlaces = async () => {
+      try {
+        const res = await axios.get("http://localhost:8000/stock/items");
+        setItems(res.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchPlaces();
+  }, []);
+
+  useEffect(() => {
+    const fetchPlaces = async () => {
+      try {
+        const res = await axios.get("http://localhost:8000/stock/places", {
+          params: { Item: rowItem },
+        });
+        setPlaces(res.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchPlaces();
+  }, [rowItem]);
+
+  useEffect(() => {
+    const Total = itemList.reduce((total, currentItem) => {
+      return total + currentItem.unitPrice * currentItem.quantity;
+    }, 0);
+    setTotal(Total);
+  }, [itemList]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (rowItem && itemPlace && amount > 0) {
+    const stockData = await axios.get("http://localhost:8000/stocks/get", {
+      params: { Item: rowItem, Place: itemPlace },
+    });
+    const stock = stockData.data.Quantity;
+    if (stock === 0) {
+      setErrorMessage("තොග නැත");
+      setIsErrorModelOpen(true);
+    } else if (amount > stock) {
+      setErrorMessage("ප්‍රමාණවත් තොගයක් නැත");
+      setIsErrorModelOpen(true);
+    } else if (rowItem && itemPlace && amount > 0) {
+      const res = await axios.put("http://localhost:8000/dealings/add", {
+        billID: billId,
+        item: rowItem,
+        place: itemPlace,
+        unitPrice: unitPrice,
+        quantity: amount,
+      });
+      const Unit_Price = res.data[0].Unit_Price;
+      setUnitPrice(Unit_Price);
       setItemlist([
         ...itemList,
-        { item: rowItem, place: itemPlace, quantity: amount },
+        {
+          item: rowItem,
+          place: itemPlace,
+          unitPrice: Unit_Price,
+          quantity: amount,
+          id: res.data[1],
+        },
       ]);
       setRowItem("");
       setItemPlace("");
       setAmount(0);
     }
+  };
+
+  const dealingsRemove = async (id: number) => {
+    try {
+      await axios.delete("http://localhost:8000/dealings/delete", {
+        params: { id: id },
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleRemove = async (id: number, index: number) => {
+    const newItems = [...itemList];
+    dealingsRemove(id);
+    newItems.splice(index, 1);
+    setItemlist(newItems);
+  };
+
+  const handleCancel = () => {
+    setIsCancelLoading(true);
+    setTimeout(async () => {
+      await axios.post("http://localhost:8000/bill/update", {
+        id: billId,
+        status: "",
+        Total: total,
+      });
+      await axios.post("http://localhost:8000/order/update", {
+        id: billId,
+        status: status,
+        closedate: status === "" ? "" : closeDate,
+      });
+      setIsCancelLoading(false);
+      onClose();
+    }, 1000);
   };
 
   return (
@@ -72,6 +183,30 @@ const CreateOrder: React.FC<CreateOrderProps> = ({
                   >
                     <div className="col-span-6 sm:col-span-3">
                       <label
+                        htmlFor="item"
+                        className="block text-left mx-1 text-sm font-medium text-gray-900"
+                      >
+                        {" "}
+                        Item{" "}
+                      </label>
+                      <select
+                        name="item"
+                        id="item"
+                        className="mt-1.5 w-full rounded-lg bg-gray-200 border-2 h-8 border-gray-300 text-gray-700 sm:text-sm"
+                        onChange={(e) => setRowItem(e.target.value)}
+                        value={rowItem}
+                        autoFocus
+                        required
+                      >
+                        <option value="">select item</option>
+                        {items.map((item) => (
+                          <option value={item.Item_ID}>{item.Item_ID}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="col-span-6 sm:col-span-3">
+                      <label
                         htmlFor="place"
                         className="block text-left mx-1 text-sm font-medium text-gray-900"
                       >
@@ -86,35 +221,12 @@ const CreateOrder: React.FC<CreateOrderProps> = ({
                         className="mt-1.5 w-full rounded-lg bg-gray-200 border-2 h-8 border-gray-300 text-gray-700 sm:text-sm"
                         onChange={(e) => setItemPlace(e.target.value)}
                         value={itemPlace}
-                        autoFocus
                       >
                         <option value="">select place</option>
                         {places.map((place) => (
-                          <option key={place} value={place}>
-                            {place}
+                          <option key={place.Place_ID} value={place.Place_ID}>
+                            {place.Place_ID}
                           </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="col-span-6 sm:col-span-3">
-                      <label
-                        htmlFor="item"
-                        className="block text-left mx-1 text-sm font-medium text-gray-900"
-                      >
-                        {" "}
-                        Item{" "}
-                      </label>
-                      <select
-                        name="item"
-                        id="item"
-                        className="mt-1.5 w-full rounded-lg bg-gray-200 border-2 h-8 border-gray-300 text-gray-700 sm:text-sm"
-                        onChange={(e) => setRowItem(e.target.value)}
-                        value={rowItem}
-                      >
-                        <option value="">select item</option>
-                        {items.map((item) => (
-                          <option value={item}>{item}</option>
                         ))}
                       </select>
                     </div>
@@ -142,7 +254,7 @@ const CreateOrder: React.FC<CreateOrderProps> = ({
                         htmlFor="date"
                         className="block text-left mx-1 text-sm font-medium text-gray-700"
                       >
-                        Close date
+                        අවසන් කළ දිනය
                       </label>
 
                       <div className="relative">
@@ -150,10 +262,9 @@ const CreateOrder: React.FC<CreateOrderProps> = ({
                           type="date"
                           id="date"
                           name="date"
+                          value={closeDate}
                           className="mt-1 p-1 w-full h-8 border-2 rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm pr-10 cursor-pointer"
-                          onChange={(e) =>
-                            setCloseDate(new Date(e.target.value))
-                          }
+                          onChange={(e) => setCloseDate(e.target.value)}
                         />
                         <span className="absolute inset-y-0 end-0 grid place-content-center px-2">
                           <svg
@@ -172,6 +283,27 @@ const CreateOrder: React.FC<CreateOrderProps> = ({
                           </svg>
                         </span>
                       </div>
+                    </div>
+                    <div className="col-span-6 sm:col-span-3">
+                      <label
+                        htmlFor="place"
+                        className="block text-left mx-1 text-sm font-bold text-gray-900"
+                      >
+                        {" "}
+                        තත්ත්වය{" "}
+                      </label>
+
+                      <select
+                        name="status"
+                        id="status"
+                        className="mt-1.5 w-full rounded-lg bg-gray-200 border-2 h-8 border-gray-300 text-gray-700 sm:text-sm"
+                        onChange={(e) => setStatus(e.target.value)}
+                        value={status}
+                      >
+                        <option value="">තත්ත්වය තෝරන්න</option>
+                        <option value="complete">සම්පූර්ණයි</option>
+                        <option value="complete">අසම්පූර්ණයි</option>
+                      </select>
                     </div>
                   </form>
 
@@ -212,17 +344,20 @@ const CreateOrder: React.FC<CreateOrderProps> = ({
                               {item.place}
                             </td>
                             <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                              200.00
+                              {item.unitPrice}
                             </td>
                             <td className="whitespace-nowrap px-4 py-2 text-gray-700">
                               {item.quantity}
                             </td>
                             <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                              {(item.quantity * 200.0).toFixed(2)}
+                              {(item.quantity * item.unitPrice).toFixed(2)}
                             </td>
                             <td className="whitespace-nowrap pl-3 pr-16 py-2 text-gray-200">
                               <div className="relative inline-block">
-                                <button className="relative text-gray-600 border-gray-200 transition hover:text-red-600 hover:border-gray-400 rounded bg-blue-50 px-2 py-1.5 group">
+                                <button
+                                  className="relative text-gray-600 border-gray-200 transition hover:text-red-600 hover:border-gray-400 rounded bg-blue-50 px-2 py-1.5 group"
+                                  onClick={() => handleRemove(item.id, index)}
+                                >
                                   <span className="absolute z-50 start-full top-1/2 ms-1 -translate-y-full rounded bg-gray-900 px-1 py-0.5 text-xs font-medium text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                                     Remove
                                   </span>
@@ -248,6 +383,31 @@ const CreateOrder: React.FC<CreateOrderProps> = ({
                       </tbody>
                     </table>
                   </div>
+                  <div className="mt-8 flex justify-end border-t border-gray-100 pt-8">
+                    <div className="w-screen max-w-lg space-y-4">
+                      <dl className="space-y-0.5 text-sm text-gray-700">
+                        <div className="flex justify-between">
+                          <dt>උප එකතුව</dt>
+                          <dd>RS.{total}</dd>
+                        </div>
+
+                        <div className="flex justify-between">
+                          <dt>වැට් බද්ද</dt>
+                          <dd>RS.0</dd>
+                        </div>
+
+                        <div className="flex justify-between">
+                          <dt>වට්ටම්</dt>
+                          <dd>-RS.0</dd>
+                        </div>
+
+                        <div className="flex justify-between !text-base font-medium">
+                          <dt>එකතුව</dt>
+                          <dd>RS.{total}</dd>
+                        </div>
+                      </dl>
+                    </div>
+                  </div>
                 </div>
               </main>
             </div>
@@ -256,12 +416,18 @@ const CreateOrder: React.FC<CreateOrderProps> = ({
             <button
               type="button"
               className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
-              onClick={onClose}
+              onClick={handleCancel}
+              disabled={isCancelLoading}
             >
-              Close
+              {isCancelLoading ? "පූරණය වෙමින්..." : "අවලංගු කරන්න"}
             </button>
           </div>
         </div>
+        <ErrorModal
+          isOpen={isErrorModelOpen}
+          onClose={() => setIsErrorModelOpen(false)}
+          errorMessage={errorMessage}
+        />
       </div>
     </div>
   );

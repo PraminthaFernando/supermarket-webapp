@@ -22,3 +22,10 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
   // You can expose other APTs you need here.
   // ...
 })
+
+// Expose electron-store methods to the renderer process
+// contextBridge.exposeInMainWorld("electronStore", {
+//   set: (key: string, value: any) => ipcRenderer.invoke('store-set', key, value),
+//   get: (key: string) => ipcRenderer.invoke('store-get', key),
+//   delete: (key: string) => ipcRenderer.invoke('store-delete', key)
+// });

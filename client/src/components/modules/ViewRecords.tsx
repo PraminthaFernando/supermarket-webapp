@@ -1,13 +1,18 @@
 import React, { useEffect, useState } from "react";
 import EditRecord from "./EditRecord";
 import GoBack from "./Goback";
+import ErrorModal from "./ErrorModel";
+import { format } from "date-fns";
 import axios from "axios";
 
 const ViewRecords: React.FC = () => {
-  const [recordID, setRecordID] = useState("");
+  const [recordID, setRecordID] = useState<any>();
   const [State, setState] = useState(false);
   const [isEditRecordOpen, setIsEditRecordOpen] = useState(false);
-  const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [isErrorModelOpen, setIsErrorModelOpen] = useState(false);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedRows] = useState<string[]>([]);
   const [records, setRecords] = useState<any[]>([]);
 
   useEffect(() => {
@@ -51,6 +56,31 @@ const ViewRecords: React.FC = () => {
     setIsEditRecordOpen(true);
   };
 
+  const handleRemoveClick = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      selectedRows.forEach(async (record) => {
+        try {
+          const res = await axios.delete(
+            "http://localhost:8000/records/delete",
+            {
+              params: { id: record },
+            }
+          );
+          if (res.data === "ok") {
+            window.location.reload();
+          } else {
+            setError(res.data);
+            setIsErrorModelOpen(true);
+          }
+        } catch (err) {
+          console.log(err);
+        }
+        setIsLoading(false);
+      });
+    }, 1400);
+  };
+
   return (
     <div className="overflow-x-auto flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
       <div className="fixed inset-0 bg-gray-500 bg-opacity-50 transition-opacity"></div>
@@ -59,23 +89,29 @@ const ViewRecords: React.FC = () => {
           Record list
         </h1>
         <table className="min-w-fit min-h-full p-5 m-8 rounded-lg divide-y-2 overflow-hidden shadow-xl transform transition-all divide-gray-300 bg-white text-sm items-start">
-          <thead className="ltr:text-left rtl:text-right">
+          <thead className="ltr:text-left rtl:text-right font-light">
             <tr>
               <th className="inset-y-0 start-0 bg-white px-4 py-2">
                 <label htmlFor="SelectAll" className="sr-only">
                   Select All
                 </label>
               </th>
-              <th className="whitespace-nowrap px-8 py-4 font-medium text-gray-900">
+              <th className="whitespace-nowrap px-6 py-2 font-normal text-gray-900">
                 ID
               </th>
-              <th className="whitespace-nowrap px-8 py-4 font-medium text-gray-900">
+              <th className="whitespace-nowrap px-6 py-2 font-normal text-gray-900">
                 Payment
               </th>
-              <th className="whitespace-nowrap px-8 py-4 font-medium text-gray-900">
+              <th className="whitespace-nowrap px-6 py-2 font-normal text-gray-900">
                 Date
               </th>
-              <th className="whitespace-nowrap px-8 py-4 font-medium text-gray-900">
+              <th className="whitespace-nowrap px-6 py-2 font-normal text-gray-900">
+                Price
+              </th>
+              <th className="whitespace-nowrap px-6 py-2 font-normal text-gray-900">
+                Description
+              </th>
+              <th className="whitespace-nowrap px-6 py-2 font-normal text-gray-900">
                 Reprt ID
               </th>
               <th className="px-8 py-4"></th>
@@ -95,24 +131,32 @@ const ViewRecords: React.FC = () => {
                     type="checkbox"
                     id={record.ID}
                     // checked={selectedRows.includes("Row1")}
-                    onChange={() => handleCheckboxChange("Row1")}
+                    onChange={() => handleCheckboxChange(record.ID)}
                   />
                 </td>
-                <td className="whitespace-nowrap px-8 py-3 font-medium text-gray-900">
+                <td className="whitespace-nowrap px-6 py-2 font-normal text-black">
                   {record.ID}
                 </td>
-                <td className="whitespace-nowrap px-8 py-3 text-gray-700">
+                <td className="whitespace-nowrap px-6 py-2 font-normal text-black">
                   {record.Payment}
                 </td>
-                <td className="whitespace-nowrap px-8 py-3 text-gray-700">
-                  {record.Date}
+                <td className="whitespace-nowrap px-6 py-2 font-normal text-black">
+                  {format(new Date(record.Date), "yyyy-MM-dd")}
                 </td>
-                <td className="whitespace-nowrap px-8 py-3 text-gray-700">
+                <td className="whitespace-nowrap px-6 py-2 font-normal text-black">
+                  {record.Price}
+                </td>
+                <td className="whitespace-nowrap px-6 py-2 font-normal text-black">
+                  {record.Description}
+                </td>
+                <td className="whitespace-nowrap px-6 py-2 font-normal text-black">
                   {record.Report_ID}
                 </td>
-                <td className="whitespace-nowrap px-8 py-3">
+                <td className="whitespace-nowrap px-6 py-2">
                   <button
-                    className="inline-block rounded bg-indigo-600 px-8 py-3 text-xs font-medium text-white hover:bg-indigo-700"
+                    className={`${
+                      record.Payment === "Stock" ? "hidden" : "inline-block"
+                    } rounded bg-indigo-600 px-6 py-2 text-xs font-normal text-white hover:bg-indigo-700 `}
                     onClick={() => handleEditClick(record.ID)}
                   >
                     Edit
@@ -130,8 +174,10 @@ const ViewRecords: React.FC = () => {
           <button
             type="button"
             className="rounded bg-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-gray-600"
+            onClick={handleRemoveClick}
+            aria-disabled={isLoading}
           >
-            Remove
+            {isLoading ? "Removing..." : "Remove"}
           </button>
 
           <button
@@ -148,6 +194,11 @@ const ViewRecords: React.FC = () => {
         isOpen={isEditRecordOpen}
         onClose={handleClose}
         Record_ID={recordID}
+      />
+      <ErrorModal
+        isOpen={isErrorModelOpen}
+        onClose={() => setIsErrorModelOpen(false)}
+        errorMessage={error}
       />
     </div>
   );

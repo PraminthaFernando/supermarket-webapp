@@ -31,7 +31,9 @@ const Items: React.FC = () => {
   useEffect(() => {
     const fetchPlaces = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/stock/items");
+        const res = await axios.get("http://localhost:8000/stock/items", {
+          withCredentials: true, // This tells Axios to send cookies with the request
+        });
         setItems(res.data);
       } catch (err) {
         console.log(err);
@@ -45,6 +47,7 @@ const Items: React.FC = () => {
       try {
         const res = await axios.get("http://localhost:8000/stock/places", {
           params: { Item: rowItem },
+          withCredentials: true,
         });
         setPlaces(res.data);
       } catch (err) {
@@ -65,6 +68,7 @@ const Items: React.FC = () => {
     e.preventDefault();
     const stockData = await axios.get("http://localhost:8000/stocks/get", {
       params: { Item: rowItem, Place: itemPlace },
+      withCredentials: true,
     });
     const stock = stockData.data.Quantity;
     if (stock === 0) {
@@ -74,13 +78,19 @@ const Items: React.FC = () => {
       setErrorMessage("ප්‍රමාණවත් තොගයක් නැත");
       setIsErrorModelOpen(true);
     } else if (rowItem && itemPlace && amount > 0) {
-      const res = await axios.put("http://localhost:8000/dealings/add", {
-        billID: billID,
-        item: rowItem,
-        place: itemPlace,
-        unitPrice: unitPrice,
-        quantity: amount,
-      });
+      const res = await axios.put(
+        "http://localhost:8000/dealings/add",
+        {
+          billID: billID,
+          item: rowItem,
+          place: itemPlace,
+          unitPrice: unitPrice,
+          quantity: amount,
+        },
+        {
+          withCredentials: true, // This tells Axios to send cookies with the request
+        }
+      );
       const Unit_Price = res.data[0].Unit_Price;
       setUnitPrice(Unit_Price);
       setItemlist([
@@ -112,11 +122,17 @@ const Items: React.FC = () => {
         if (Type === "bill") {
           status = "ගෙවා ඇත";
         }
-        await axios.post("http://localhost:8000/bill/update", {
-          id: billID,
-          status: status,
-          Total: total,
-        });
+        await axios.post(
+          "http://localhost:8000/bill/update",
+          {
+            id: billID,
+            status: status,
+            Total: total,
+          },
+          {
+            withCredentials: true, // This tells Axios to send cookies with the request
+          }
+        );
         setIsPrintLoading(false);
         navigate(-1);
       }, 1000);
@@ -127,6 +143,7 @@ const Items: React.FC = () => {
     try {
       await axios.delete("http://localhost:8000/dealings/delete", {
         params: { id: id },
+        withCredentials: true,
       });
     } catch (err) {
       console.log(err);
@@ -146,11 +163,13 @@ const Items: React.FC = () => {
       if (Type === "order") {
         await axios.delete("http://localhost:8000/order/remove", {
           params: { id: billID },
+          withCredentials: true,
         });
         navigate(-1);
       } else {
         const res = await axios.delete("http://localhost:8000/bills/delete", {
           params: { id: billID },
+          withCredentials: true,
         });
         if (res.data === "ok") {
           navigate(-1);

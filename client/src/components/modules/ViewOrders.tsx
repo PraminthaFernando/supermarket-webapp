@@ -19,7 +19,9 @@ const ViewOrders: React.FC = () => {
   useEffect(() => {
     const fetchAllplaces = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/orders");
+        const res = await axios.get("http://localhost:8000/orders", {
+          withCredentials: true,
+        });
         setOrders(res.data);
       } catch (err) {
         console.log(err);

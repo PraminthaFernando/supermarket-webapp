@@ -33,6 +33,8 @@ const loginUser = async (username, password, res) => {
         const user = results[0];
         if (bcrypt.compareSync(password, user.User_Password)) {
             return generateAccessToken({ username }, res); // Generate and return a JWT
+        } else {
+            return null
         }
         
         return null; // Login failed
@@ -52,6 +54,8 @@ const refreshUserLogin = async (username, password, res) => {
         const user = results[0];
         if (bcrypt.compareSync(password, user.User_Password)) {
             return generateRefreshToken({ username }, res); // Generate and return a JWT
+        } else {
+            return null
         }
         
         return null; // Login failed

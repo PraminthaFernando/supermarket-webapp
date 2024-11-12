@@ -14,6 +14,7 @@ const ViewStock: React.FC = () => {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [stocks, setStocks] = useState<any[]>([]);
+  const [rowData, setRowData] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchStock = async () => {
@@ -22,6 +23,7 @@ const ViewStock: React.FC = () => {
           withCredentials: true, // This tells Axios to send cookies with the request
         });
         setStocks(res.data);
+        setRowData(res.data);
       } catch (err) {
         console.log(err);
       }
@@ -69,6 +71,7 @@ const ViewStock: React.FC = () => {
         try {
           const res = await axios.delete("http://localhost:8000/stock/delete", {
             params: { id: record },
+            withCredentials: true,
           });
           if (res.data === "ok") {
             window.location.reload();
@@ -82,6 +85,16 @@ const ViewStock: React.FC = () => {
       });
       setIsLoading(false);
     }, 1400);
+  };
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value.toUpperCase();
+    const rows = rowData.filter(
+      (stock) =>
+        (stock.Item_ID.startsWith(input) || stock.Place_ID.startsWith(input)) &&
+        input !== null
+    );
+    setStocks(rows);
   };
   return (
     <RootNbodyStyle>
@@ -100,15 +113,13 @@ const ViewStock: React.FC = () => {
             <input
               type="text"
               id="Search"
-              placeholder="Search for..."
-              className="w-full px-2 rounded-2xl bg-white border-gray-200 border-2 py-2.5 pe-10 shadow-sm sm:text-sm"
+              onChange={(e) => handleSearch(e)}
+              placeholder="සොයන්න..."
+              className="w-full px-2 rounded-2xl text-black bg-white border-gray-300 border-2 py-1.5 pe-10 shadow-sm sm:text-sm"
             />
 
-            <span className="absolute inset-y-0 end-0 grid w-10 place-content-center">
-              <button
-                type="button"
-                className="text-gray-600 hover:text-gray-700"
-              >
+            <span className="absolute inset-y-0 rounded-2xl end-0 grid w-10 place-content-center hover:bg-blue-600 hover:text-white">
+              <a type="button" className="text-gray-600 hover:text-white">
                 <span className="sr-only">Search</span>
 
                 <svg
@@ -125,7 +136,7 @@ const ViewStock: React.FC = () => {
                     d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
                   />
                 </svg>
-              </button>
+              </a>
             </span>
           </div>
           <table className="min-w-fit min-h-full p-5 m-8 rounded-lg divide-y-2 overflow-hidden shadow-xl transform transition-all divide-gray-300 bg-white text-sm items-start">

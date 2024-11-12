@@ -8,6 +8,7 @@ const ViewUsers: React.FC = () => {
   const [State, setState] = useState(false);
   const [selectedRows] = useState<string[]>([]);
   const [users, setUsers] = useState<any[]>([]);
+  const [rowData, setRowData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isErrorModelOpen, setIsErrorModelOpen] = useState(false);
   const [error, setError] = useState("");
@@ -17,6 +18,7 @@ const ViewUsers: React.FC = () => {
       try {
         const res = await axios.get("http://localhost:8000/users");
         setUsers(res.data);
+        setRowData(res.data);
       } catch (err) {
         console.log(err);
       }
@@ -65,6 +67,13 @@ const ViewUsers: React.FC = () => {
       setIsLoading(false);
     }, 1400);
   };
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value.toUpperCase();
+    const rows = rowData.filter(
+      (user) => user.Name.startsWith(input) && input !== null
+    );
+    setUsers(rows);
+  };
   return (
     <RootNbodyStyle>
       <div className="overflow-x-auto flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -73,6 +82,41 @@ const ViewUsers: React.FC = () => {
           <h1 className="mt-6 text-xl font-bold text-gray-900 text-center my-10 sm:text-3xl md:text-4xl">
             Users
           </h1>
+          <div className="relative text-center w-1/2 mx-auto bg-white">
+            <label htmlFor="Search" className="sr-only">
+              {" "}
+              Search{" "}
+            </label>
+
+            <input
+              type="text"
+              id="Search"
+              onChange={(e) => handleSearch(e)}
+              placeholder="සොයන්න..."
+              className="w-full px-2 rounded-2xl text-black bg-white border-gray-300 border-2 py-1.5 pe-10 shadow-sm sm:text-sm"
+            />
+
+            <span className="absolute inset-y-0 rounded-2xl end-0 grid w-10 place-content-center hover:bg-blue-600 hover:text-white">
+              <a type="button" className="text-gray-600 hover:text-white">
+                <span className="sr-only">Search</span>
+
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                  stroke="currentColor"
+                  className="size-4"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                  />
+                </svg>
+              </a>
+            </span>
+          </div>
           <table className="min-w-fit min-h-full p-5 m-8 rounded-lg divide-y-2 overflow-hidden shadow-xl transform transition-all divide-gray-300 bg-white text-sm items-start">
             <thead className="ltr:text-left rtl:text-right">
               <tr>

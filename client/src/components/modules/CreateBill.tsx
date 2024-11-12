@@ -13,7 +13,9 @@ const CreateBill: React.FC = () => {
   useEffect(() => {
     const fetchAllCustomers = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/customers");
+        const res = await axios.get("http://localhost:8000/customers", {
+          withCredentials: true, // This tells Axios to send cookies with the request
+        });
         setCustomers(res.data);
       } catch (err) {
         console.log(err);
@@ -24,16 +26,28 @@ const CreateBill: React.FC = () => {
 
   const billCreate = async (name: string) => {
     setIsLoading(true);
-    const res = await axios.put("http://localhost:8000/bill/create", {
-      customerID: customerID,
-      date: date,
-    });
+    const res = await axios.put(
+      "http://localhost:8000/bill/create",
+      {
+        customerID: customerID,
+        date: date,
+      },
+      {
+        withCredentials: true, // This tells Axios to send cookies with the request
+      }
+    );
     const b_id = res.data;
     if (name == "order") {
-      const res = await axios.put("http://localhost:8000/order/create", {
-        bill: b_id,
-        date: date,
-      });
+      const res = await axios.put(
+        "http://localhost:8000/order/create",
+        {
+          bill: b_id,
+          date: date,
+        },
+        {
+          withCredentials: true, // This tells Axios to send cookies with the request
+        }
+      );
       console.log(res.data);
     }
     setTimeout(() => {

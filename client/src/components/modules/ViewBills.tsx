@@ -14,7 +14,9 @@ const ViewBills: React.FC = () => {
   useEffect(() => {
     const fetchAllBills = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/bills");
+        const res = await axios.get("http://localhost:8000/bills", {
+          withCredentials: true, // This tells Axios to send cookies with the request
+        });
         setBills(res.data);
       } catch (err) {
         setError("අනවසර පිවිසුමකි");

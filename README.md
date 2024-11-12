@@ -115,7 +115,7 @@ supermarket-webapp/
 
 6. Run Electron App:
 
-   - o start the Electron app in development:
+   - To start the Electron app in development:
 
    ```bash
    npm run electron:serve

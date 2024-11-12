@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ErrorModal from "./ErrorModel";
-// import { ipcRenderer } from "electron";
 
 const AdminLogin: React.FC = () => {
   const [username, setUsername] = useState("");
@@ -49,7 +48,7 @@ const AdminLogin: React.FC = () => {
       } else {
         const error = await response.text();
         console.log(error);
-        setError("Login faild");
+        setError("මුරපදය හෝ පරිශීලක නාමය නොගැලපෙන දෝෂයකි");
         setIsErrorModalOpen(true);
       }
       setIsLoading(false);

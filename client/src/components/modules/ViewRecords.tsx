@@ -18,7 +18,9 @@ const ViewRecords: React.FC = () => {
   useEffect(() => {
     const fetchAllRecords = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/records");
+        const res = await axios.get("http://localhost:8000/records", {
+          withCredentials: true,
+        });
         setRecords(res.data);
       } catch (err) {
         console.log(err);
@@ -65,6 +67,7 @@ const ViewRecords: React.FC = () => {
             "http://localhost:8000/records/delete",
             {
               params: { id: record },
+              withCredentials: true,
             }
           );
           if (res.data === "ok") {

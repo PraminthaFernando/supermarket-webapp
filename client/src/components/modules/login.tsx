@@ -78,7 +78,7 @@ const Login: React.FC = () => {
       } else {
         const error = await response.text();
         console.log(error);
-        setError("ඇතුළු වීම අසාර්ථක විය");
+        setError("මුරපදය හෝ පරිශීලක නාමය නොගැලපෙන දෝෂයකි");
         setIsErrorModalOpen(true);
       }
       setIsLoading(false);

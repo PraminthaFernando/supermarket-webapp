@@ -32,7 +32,7 @@ const app = express()
 
 app.use(express.json())
 app.use(cors({
-    origin: 'http://localhost:5173', // Your frontend's URL (React or other frontend)
+    origin: 'http://localhost:5173', // frontend's URL
     credentials: true, // This allows cookies to be sent/received with requests
 }))
 app.use(cookieParser());

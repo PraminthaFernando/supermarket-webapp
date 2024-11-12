@@ -35,6 +35,7 @@ const OrderItems: React.FC<OrderItemsprops> = ({
           "http://localhost:8000/CustomerOrders/items",
           {
             params: { id: Bill_ID },
+            withCredentials: true,
           }
         );
         setItemlist(res.data);
